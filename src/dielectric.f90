@@ -2,7 +2,7 @@ MODULE DIELECTRIC
     IMPLICIT NONE
     CONTAINS
 
-    function permitivity(eps_0,electric_field,T)
+    function permitivity(eps_0,electric_field)
     implicit double precision (a-h,o-z)
     fm2au=18.897261*1e9
     feV2au=0.03674932587

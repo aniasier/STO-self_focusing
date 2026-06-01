@@ -6,7 +6,7 @@
 *.mod
 *.ipybn
 *.out
-
+*.exe
 obj/
 mod/
 data/

@@ -2,6 +2,10 @@
 FC = gfortran
 TARGET = STO.exe
 
+SRC_DIR = src
+OBJ_DIR = obj
+MOD_DIR = mod
+
 # Your specific flags
 FFLAGS = -Ofast -m64 -ffixed-line-length-none -fdefault-real-8 \
          -fdefault-double-8 -std=legacy -Wfatal-errors \
@@ -17,24 +21,34 @@ MKL_LIBS = -Wl,--start-group \
            -Wl,--end-group \
            -lgomp -lpthread -lm -ldl
 
+SRC = $(SRC_DIR)/dielectric.f90 \
+      $(SRC_DIR)/poisson_solver.f90 \
+      $(SRC_DIR)/main.f90
+
 # Object files
-OBJ = dielectric.o poisson_solver.o main.o
+OBJ = $(OBJ_DIR)/dielectric.o \
+      $(OBJ_DIR)/poisson_solver.o \
+      $(OBJ_DIR)/main.o
 
 # --- Rules ---
 
-all: $(TARGET)
+all: directories $(TARGET)
+
+directories:
+	mkdir -p $(OBJ_DIR)
+	mkdir -p $(MOD_DIR)
 
 $(TARGET): $(OBJ)
 	$(FC) $(FFLAGS) -o $(TARGET) $(OBJ) $(MKL_LIBS)
 
-dielectric.o: dielectric.f90
-	$(FC) $(FFLAGS) $(INCLUDES) -c dielectric.f90
+$(OBJ_DIR)/dielectric.o: $(SRC_DIR)/dielectric.f90
+	$(FC) $(FFLAGS) $(INCLUDES) -J$(MOD_DIR) -I$(MOD_DIR) -c $< -o $@
 
-poisson_solver.o: poisson_solver.f90
-	$(FC) $(FFLAGS) $(INCLUDES) -c poisson_solver.f90
+$(OBJ_DIR)/poisson_solver.o: $(SRC_DIR)/poisson_solver.f90 $(OBJ_DIR)/dielectric.o
+	$(FC) $(FFLAGS) $(INCLUDES) -J$(MOD_DIR) -I$(MOD_DIR) -c $< -o $@
 
-main.o: main.f90 dielectric.o poisson_solver.o
-	$(FC) $(FFLAGS) $(INCLUDES) -c main.f90
+$(OBJ_DIR)/main.o: $(SRC_DIR)/main.f90 $(OBJ_DIR)/dielectric.o $(OBJ_DIR)/poisson_solver.o
+	$(FC) $(FFLAGS) $(INCLUDES) -J$(MOD_DIR) -I$(MOD_DIR) -c $< -o $@
 
 clean:
-	rm -f *.o *.mod $(TARGET)
+	rm -rf $(OBJ_DIR) $(MOD_DIR) $(TARGET)

@@ -3,6 +3,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 MODULE Poisson_Solver_Mod
+    USE DIELECTRIC
     IMPLICIT NONE
     ! Physical Constants in Atomic Units
     !parametry
@@ -363,27 +364,18 @@ CONTAINS
     END SUBROUTINE Poisson
 
 
-    SUBROUTINE POISSON_ZDIRECTION(n0_trapped, L_trapped, eps_0,  nz, dz, n_base, &
-             T, m1, m2)
+    SUBROUTINE POISSON_ZDIRECTION(n0_trapped, L_trapped, eps_0,  nz, dz, &
+             m1, m2)
         IMPLICIT NONE
-
-        REAL*8, PARAMETER :: fnm2au=18.897261
-        REAL*8, PARAMETER :: feV2au=0.03674932587
-        REAL*8, PARAMETER :: pi=3.141592
-        REAL*8, PARAMETER :: fne2au=1.0/(1e21*fnm2au**3)
-        REAL*8, PARAMETER :: kb=3.1668152e-6
-        REAL*8, PARAMETER :: fne2D2au=1.0/(1e14*fnm2au**2)
-        REAL*8, PARAMETER :: epsilon0=1.0/(4.0*pi)
 
         REAL*8, intent(in) :: eps_0
         REAL*8, intent(in) :: L_trapped
         REAL*8, intent(in) :: n0_trapped
-        REAL*8, intent(in) :: dz, T
-        INTEGER, intent(in) :: nz, n_base
+        REAL*8, intent(in) :: dz
+        INTEGER, intent(in) :: nz
         REAL*8, intent (in) :: m1, m2
 
         !zmienne pomocnicze
-        double precision :: permitivity
         REAL*8 :: al_sp
         INTEGER :: i, iz
         REAL*8 :: d_pot_chem
@@ -588,31 +580,31 @@ CONTAINS
         electric_field(nz)=electric_field(nz-1)
 
         !!!!!!!!!!!!! zapis do pliku !!!!!!!!!!!!!!!!!!
-        OPEN(1, FILE="charge_trapped.dat")
+        OPEN(1, FILE="data/charge_trapped.dat")
         do iz=1,nz
             z=(iz-1)*dz
             write(1, '(200e20.12)') z/fnm2au, charge_trapped(iz)/fne2au   
         enddo
         CLOSE(1)
 
-        OPEN(1, FILE="potential_trapped.dat")
+        OPEN(1, FILE="data/potential_trapped.dat")
         do iz=1,nz
         z=(iz-1)*dz
         write(1, '(200e20.12)') z/fnm2au, -pot_hartree(iz)/feV2au 
         enddo
         CLOSE(1)
 
-        OPEN(1, FILE="electric_field_trapped.dat")
+        OPEN(1, FILE="data/electric_field_trapped.dat")
         do iz=1,nz
         z=(iz-1)*dz
         write(1, '(200e20.12)') z/fnm2au, electric_field(iz)*fnm2au/feV2au 
         enddo
         CLOSE(1)
 
-        OPEN(1, FILE="epsilon_trapped.dat")
+        OPEN(1, FILE="data/epsilon_trapped.dat")
         do iz=1,nz
             z=(iz-1)*dz
-            write(1, '(200e20.12)') z/fnm2au, permitivity(eps_0,electric_field(iz),T)
+            write(1, '(200e20.12)') z/fnm2au, permitivity(eps_0,electric_field(iz))
         enddo
         CLOSE(1)
 

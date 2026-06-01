@@ -7,3 +7,6 @@
 *.ipybn
 *.out
 
+obj/
+mod/
+data/

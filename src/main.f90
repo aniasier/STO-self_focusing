@@ -14,7 +14,7 @@ PROGRAM MAIN
     m1=0.2
     m2=3.5
 
-    CALL POISSON_ZDIRECTION(n0_trapped, L_trapped, eps_0, nz, dz, m1, m2)
+    CALL POISSON_ZDIRECTION_INIT(n0_trapped, L_trapped, eps_0, nz, dz, m1, m2)
 
 
 END PROGRAM MAIN

@@ -364,8 +364,7 @@ CONTAINS
     END SUBROUTINE Poisson
 
 
-    SUBROUTINE POISSON_ZDIRECTION(n0_trapped, L_trapped, eps_0,  nz, dz, &
-             m1, m2)
+    SUBROUTINE POISSON_ZDIRECTION_INIT(n0_trapped, L_trapped, eps_0,  nz, dz)
         IMPLICIT NONE
 
         REAL*8, intent(in) :: eps_0
@@ -373,36 +372,18 @@ CONTAINS
         REAL*8, intent(in) :: n0_trapped
         REAL*8, intent(in) :: dz
         INTEGER, intent(in) :: nz
-        REAL*8, intent (in) :: m1, m2
+
 
         !zmienne pomocnicze
-        REAL*8 :: al_sp
         INTEGER :: i, iz
-        REAL*8 :: d_pot_chem
-        REAL*8 :: mx_xy, mx_xz, mx_yz
-        REAL*8 :: my_xy, my_xz, my_yz
-        REAL*8 :: mz_xy, mz_xz, mz_yz
         REAL*8 :: charge_bc
-
-        REAL*8 :: tol_ne, tol_sp
         REAL*8 :: z
 
         REAL*8, ALLOCATABLE :: charge_trapped(:)
         REAL*8, ALLOCATABLE :: electric_field(:)
-        REAL*8, ALLOCATABLE :: pot_hartree_old(:)
         REAL*8, ALLOCATABLE :: pot_hartree(:)
-        REAL*8, ALLOCATABLE :: pot_Vbg(:)
 
-        double precision, ALLOCATABLE :: A(:,:)
-        double precision, ALLOCATABLE :: VR(:,:)
-        double precision, ALLOCATABLE :: VL(:,:)
-        double precision, ALLOCATABLE :: WR(:)
-        double precision, ALLOCATABLE :: WI(:)
-        double precision, ALLOCATABLE :: WORK(:)
-        INTEGER  LWORK
-
-        !PARDISO
-        INTEGER, ALLOCATABLE :: nmat(:)        ! row/column index from positions
+        !PARDISO       
         INTEGER :: pt_prd(64)= 0.
         INTEGER :: maxfct_prd, mnum_prd, mtype_prd, phase_prd
         INTEGER :: n_prd, nrhs_prd, error_prd
@@ -415,57 +396,14 @@ CONTAINS
         REAL*8, ALLOCATABLE :: x_prd(:,:)
         INTEGER :: maxnonzeroprd, nelem
 
-        !parametry do metody Broydena dla delty
-        INTEGER :: n_iter_broyden
-        INTEGER :: ndim_broyden
-        REAL*8, ALLOCATABLE :: broyden(:)
-        REAL*8, ALLOCATABLE :: broyden_p(:)
-
-
-        !masy efektywne dla poszczegolnych pasm 
-        mx_xy=m1
-        my_xy=m1
-        mz_xy=m2
-
-        mx_xz=m1
-        my_xz=m2 
-        mz_xz=m1
-
-        mx_yz=m2
-        my_yz=m1
-        mz_yz=m1
-
-        d_pot_chem=0.2*feV2au
-        tol_ne=0.0001e11*fne2D2au
-
-        al_sp=0.5
-        tol_sp=1e-5*feV2au
-
-        !Broyden method
-        ndim_broyden=nz
-        n_iter_broyden=4
 
 
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!    tablice     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         allocate(electric_field(nz))
         allocate(charge_trapped(nz))
-        allocate(pot_hartree_old(nz))
         allocate(pot_hartree(nz))
-        allocate(pot_Vbg(nz))
 
         !zakladamy warunki brzegowe Dirichleta stad nz-2
-        allocate(A(nz-2,nz-2))
-        allocate(VR(nz-2,nz-2))
-        allocate(VL(nz-2,nz-2))
-        allocate(WR(nz-2))
-        allocate(WI(nz-2))
-        LWORK=4*(nz-2)
-        allocate(WORK(LWORK))
-
-        !broyden
-        ALLOCATE(broyden(ndim_broyden))
-        ALLOCATE(broyden_p(ndim_broyden))
-
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         !!!!!!!!!!!!!!!!!!!!!!!!!!!! tablica charge_trapped !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -610,8 +548,126 @@ CONTAINS
 
 
         
-    END SUBROUTINE POISSON_ZDIRECTION
+    END SUBROUTINE POISSON_ZDIRECTION_INIT
 
+
+    ! SUBROUTINE POISSON_ZDIRECTION(electric_field)
+    !     IMPLICIT NONE
+    !     REAL*8, INTENT (IN) :: electric_field(:)
+        
+    !     charge_bc=0.0
+    !     do iz=1,nz
+    !         charge_bc=charge_bc+(charge_trapped(iz)+ne(iz,1)+ne(iz,2))*dz
+    !     enddo
+	
+    !     perm_prd(:)= 0
+    !     ia_prd(:)= 0
+    !     ja_prd(:)= 0
+    !     a_prd(:)= 0.
+    !     b_prd(:,:)= 0.
+    !     x_prd(:,:)= 0.
+
+    !     !uzupelnianie macierzy
+    !         nelem=1
+    !         DO i=1,nz
+    !         IF (i.eq.1) THEN
+    !             ia_prd(i)= nelem
+
+    !             ja_prd( nelem )=  i
+    !             a_prd( nelem )= -1.0
+    !             nelem= nelem + 1
+
+    !             ja_prd( nelem )=  i+1
+    !             a_prd( nelem )= 1.0
+    !             nelem= nelem + 1
+            
+    !         ELSE IF (i.eq.(nz)) THEN
+    !             ia_prd(i)= nelem
+                
+    !             ja_prd( nelem )=  i
+    !             a_prd( nelem )= 1.0
+    !             nelem= nelem + 1
+
+    !         ELSE
+    !             ia_prd(i)= nelem
+
+    !             ja_prd(nelem)=i-1
+    !             a_prd(nelem)= 0.5*(permitivity(eps_0,electric_field(i))+permitivity(eps_0,electric_field(i-1))) 
+    !             nelem= nelem + 1
+
+    !             ja_prd( nelem )=  i
+    !             a_prd( nelem )= -0.5*(permitivity(eps_0,electric_field(i+1),T)+ &
+    !                         & 2.0*permitivity(eps_0,electric_field(i))+permitivity(eps_0,electric_field(i-1))) 
+    !             nelem= nelem + 1
+
+    !             ja_prd( nelem )=i+1
+    !             a_prd( nelem )= 0.5*(permitivity(eps_0,electric_field(i))+permitivity(eps_0,electric_field(i+1))) 
+    !             nelem= nelem + 1
+    !         ENDIF
+    !         enddo
+
+
+    !     ia_prd( n_prd+1 )= nelem
+    !     IF (nelem-1 /= maxnonzeroprd) STOP "PARDISO:  nelem /= maxnonzeroprd"
+
+    !     !wektor wyrazow wolnych
+    !     DO i=2,nz-1
+    !            b_prd(i, 1)= -(-charge_trapped(i)-ne(i,1)-ne(i,2))*dz*dz/epsilon0
+    !     ENDDO
+        
+    !     !warunki brzegowe
+    !     b_prd( 1, 1 )= -charge_bc*dz/permitivity(eps_0,electric_field(1))/epsilon0
+    !     b_prd( nz, 1 )= 0.0
+
+
+    !     CALL pardiso (pt_prd, maxfct_prd, mnum_prd, mtype_prd, phase_prd,      &
+    !             &        n_prd, a_prd, ia_prd, ja_prd, perm_prd, nrhs_prd,     &
+    !             &        iparm_prd, msglvl_prd, b_prd, x_prd, error_prd)
+    !     IF (error_prd /= 0)  THEN
+    !         PRINT*, "pardiso: error_prd =", error_prd
+    !         STOP
+    !     END IF
+
+    !     do iz=1,nz
+    !         pot_hartree(iz)=x_prd(iz,1)
+    !     enddo
+
+    !     do iz=1,nz-1
+    !         electric_field(iz)=(-pot_hartree(iz+1)+pot_hartree(iz))/dz
+    !     enddo
+    !     electric_field(nz)=electric_field(nz-1)
+
+    !     !!!!!!!!!!!!! zapis do pliku !!!!!!!!!!!!!!!!!!
+    !     OPEN(1, FILE="data/charge.dat")
+    !     do iz=1,nz
+    !         z=(iz-1)*dz
+    !         write(1, '(200e20.12)') z/fnm2au, charge_trapped(iz)/fne2au   
+    !     enddo
+    !     CLOSE(1)
+
+    !     OPEN(1, FILE="data/potential.dat")
+    !     do iz=1,nz
+    !     z=(iz-1)*dz
+    !     write(1, '(200e20.12)') z/fnm2au, -pot_hartree(iz)/feV2au 
+    !     enddo
+    !     CLOSE(1)
+
+    !     OPEN(1, FILE="data/electric_field.dat")
+    !     do iz=1,nz
+    !     z=(iz-1)*dz
+    !     write(1, '(200e20.12)') z/fnm2au, electric_field(iz)*fnm2au/feV2au 
+    !     enddo
+    !     CLOSE(1)
+
+    !     OPEN(1, FILE="data/epsilon.dat")
+    !     do iz=1,nz
+    !         z=(iz-1)*dz
+    !         write(1, '(200e20.12)') z/fnm2au, permitivity(eps_0,electric_field(iz))
+    !     enddo
+    !     CLOSE(1)
+
+    
+    ! END SUBROUTINE POISSON_ZDIRECTION
 
 
 END MODULE Poisson_Solver_Mod

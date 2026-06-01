@@ -364,7 +364,7 @@ CONTAINS
     END SUBROUTINE Poisson
 
 
-    SUBROUTINE POISSON_ZDIRECTION_INIT(n0_trapped, L_trapped, eps_0,  nz, dz)
+    SUBROUTINE POISSON_ZDIRECTION_INIT(n0_trapped, L_trapped, eps_0,  nz, dz, charge_trapped, electric_field)
         IMPLICIT NONE
 
         REAL*8, intent(in) :: eps_0
@@ -372,18 +372,18 @@ CONTAINS
         REAL*8, intent(in) :: n0_trapped
         REAL*8, intent(in) :: dz
         INTEGER, intent(in) :: nz
-
+        REAL*8, INTENT(OUT) :: charge_trapped(nz)
+        REAL*8, INTENT(OUT) :: electric_field(nz)
 
         !zmienne pomocnicze
         INTEGER :: i, iz
         REAL*8 :: charge_bc
         REAL*8 :: z
 
-        REAL*8, ALLOCATABLE :: charge_trapped(:)
-        REAL*8, ALLOCATABLE :: electric_field(:)
         REAL*8, ALLOCATABLE :: pot_hartree(:)
 
         !PARDISO       
+        INTEGER, ALLOCATABLE :: nmat(:)
         INTEGER :: pt_prd(64)= 0.
         INTEGER :: maxfct_prd, mnum_prd, mtype_prd, phase_prd
         INTEGER :: n_prd, nrhs_prd, error_prd
@@ -399,8 +399,6 @@ CONTAINS
 
 
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!    tablice     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        allocate(electric_field(nz))
-        allocate(charge_trapped(nz))
         allocate(pot_hartree(nz))
 
         !zakladamy warunki brzegowe Dirichleta stad nz-2
@@ -545,129 +543,173 @@ CONTAINS
             write(1, '(200e20.12)') z/fnm2au, permitivity(eps_0,electric_field(iz))
         enddo
         CLOSE(1)
-
+        DEALLOCATE(pot_hartree)
+        DEALLOCATE(perm_prd)
+        DEALLOCATE(ia_prd)
+        DEALLOCATE(ja_prd)
+        DEALLOCATE(a_prd)
+        DEALLOCATE(b_prd)
+        DEALLOCATE(x_prd)
 
         
     END SUBROUTINE POISSON_ZDIRECTION_INIT
 
 
-    ! SUBROUTINE POISSON_ZDIRECTION(electric_field)
-    !     IMPLICIT NONE
-    !     REAL*8, INTENT (IN) :: electric_field(:)
+    SUBROUTINE POISSON_ZDIRECTION(electric_field_new, electric_field, charge_trapped, eps_0,  nz, dz)
+        IMPLICIT NONE
+        REAL*8, INTENT (IN) :: electric_field(nz)
+        REAL*8, intent(in) :: eps_0
+        REAL*8, intent(in) :: charge_trapped(nz)
+        REAL*8, intent(in) :: dz
+        INTEGER, intent(in) :: nz
+        REAL*8, INTENT (OUT) :: electric_field_new(nz)
+
+        INTEGER :: i, iz
+        REAL*8 :: charge_bc, z
+        !PARDISO       
+        INTEGER :: pt_prd(64)= 0.
+        INTEGER :: maxfct_prd, mnum_prd, mtype_prd, phase_prd
+        INTEGER :: n_prd, nrhs_prd, error_prd
+        INTEGER, ALLOCATABLE :: ia_prd(:)
+        INTEGER, ALLOCATABLE :: ja_prd(:)
+        INTEGER, ALLOCATABLE ::  perm_prd(:)
+        INTEGER :: iparm_prd(64), msglvl_prd
+        REAL*8, ALLOCATABLE :: a_prd(:)
+        REAL*8, ALLOCATABLE :: b_prd(:,:)
+        REAL*8, ALLOCATABLE :: x_prd(:,:)
+        INTEGER :: maxnonzeroprd, nelem
+
+        REAL*8, ALLOCATABLE :: pot_hartree(:)
+
+        ! allocate(electric_field_new(nz))
+        allocate(pot_hartree(nz))
+
+        ALLOCATE( perm_prd(n_prd) )
+        ALLOCATE( ia_prd(n_prd+1) )
+        ALLOCATE( ja_prd(maxnonzeroprd) )
+        ALLOCATE( a_prd(maxnonzeroprd) )
+        ALLOCATE( b_prd(n_prd,nrhs_prd) )
+        ALLOCATE( x_prd(n_prd,nrhs_prd) )
         
-    !     charge_bc=0.0
-    !     do iz=1,nz
-    !         charge_bc=charge_bc+(charge_trapped(iz)+ne(iz,1)+ne(iz,2))*dz
-    !     enddo
+        charge_bc=0.0
+        do iz=1,nz
+            charge_bc=charge_bc+(charge_trapped(iz))*dz
+        enddo
 	
-    !     perm_prd(:)= 0
-    !     ia_prd(:)= 0
-    !     ja_prd(:)= 0
-    !     a_prd(:)= 0.
-    !     b_prd(:,:)= 0.
-    !     x_prd(:,:)= 0.
+        perm_prd(:)= 0
+        ia_prd(:)= 0
+        ja_prd(:)= 0
+        a_prd(:)= 0.
+        b_prd(:,:)= 0.
+        x_prd(:,:)= 0.
+        pot_hartree(:)= 0.
 
-    !     !uzupelnianie macierzy
-    !         nelem=1
-    !         DO i=1,nz
-    !         IF (i.eq.1) THEN
-    !             ia_prd(i)= nelem
+        !uzupelnianie macierzy
+            nelem=1
+            DO i=1,nz
+            IF (i.eq.1) THEN
+                ia_prd(i)= nelem
 
-    !             ja_prd( nelem )=  i
-    !             a_prd( nelem )= -1.0
-    !             nelem= nelem + 1
+                ja_prd( nelem )=  i
+                a_prd( nelem )= -1.0
+                nelem= nelem + 1
 
-    !             ja_prd( nelem )=  i+1
-    !             a_prd( nelem )= 1.0
-    !             nelem= nelem + 1
+                ja_prd( nelem )=  i+1
+                a_prd( nelem )= 1.0
+                nelem= nelem + 1
             
-    !         ELSE IF (i.eq.(nz)) THEN
-    !             ia_prd(i)= nelem
+            ELSE IF (i.eq.(nz)) THEN
+                ia_prd(i)= nelem
                 
-    !             ja_prd( nelem )=  i
-    !             a_prd( nelem )= 1.0
-    !             nelem= nelem + 1
+                ja_prd( nelem )=  i
+                a_prd( nelem )= 1.0
+                nelem= nelem + 1
 
-    !         ELSE
-    !             ia_prd(i)= nelem
+            ELSE
+                ia_prd(i)= nelem
 
-    !             ja_prd(nelem)=i-1
-    !             a_prd(nelem)= 0.5*(permitivity(eps_0,electric_field(i))+permitivity(eps_0,electric_field(i-1))) 
-    !             nelem= nelem + 1
+                ja_prd(nelem)=i-1
+                a_prd(nelem)= 0.5*(permitivity(eps_0,electric_field(i))+permitivity(eps_0,electric_field(i-1))) 
+                nelem= nelem + 1
 
-    !             ja_prd( nelem )=  i
-    !             a_prd( nelem )= -0.5*(permitivity(eps_0,electric_field(i+1),T)+ &
-    !                         & 2.0*permitivity(eps_0,electric_field(i))+permitivity(eps_0,electric_field(i-1))) 
-    !             nelem= nelem + 1
+                ja_prd( nelem )=  i
+                a_prd( nelem )= -0.5*(permitivity(eps_0,electric_field(i+1))+ &
+                            & 2.0*permitivity(eps_0,electric_field(i))+permitivity(eps_0,electric_field(i-1))) 
+                nelem= nelem + 1
 
-    !             ja_prd( nelem )=i+1
-    !             a_prd( nelem )= 0.5*(permitivity(eps_0,electric_field(i))+permitivity(eps_0,electric_field(i+1))) 
-    !             nelem= nelem + 1
-    !         ENDIF
-    !         enddo
+                ja_prd( nelem )=i+1
+                a_prd( nelem )= 0.5*(permitivity(eps_0,electric_field(i))+permitivity(eps_0,electric_field(i+1))) 
+                nelem= nelem + 1
+            ENDIF
+            enddo
 
 
-    !     ia_prd( n_prd+1 )= nelem
-    !     IF (nelem-1 /= maxnonzeroprd) STOP "PARDISO:  nelem /= maxnonzeroprd"
+        ia_prd( n_prd+1 )= nelem
+        IF (nelem-1 /= maxnonzeroprd) STOP "PARDISO:  nelem /= maxnonzeroprd"
 
-    !     !wektor wyrazow wolnych
-    !     DO i=2,nz-1
-    !            b_prd(i, 1)= -(-charge_trapped(i)-ne(i,1)-ne(i,2))*dz*dz/epsilon0
-    !     ENDDO
+        !wektor wyrazow wolnych
+        DO i=2,nz-1
+               b_prd(i, 1)= -(-charge_trapped(i))*dz*dz/epsilon0
+        ENDDO
         
-    !     !warunki brzegowe
-    !     b_prd( 1, 1 )= -charge_bc*dz/permitivity(eps_0,electric_field(1))/epsilon0
-    !     b_prd( nz, 1 )= 0.0
+        !warunki brzegowe
+        b_prd( 1, 1 )= -charge_bc*dz/permitivity(eps_0,electric_field(1))/epsilon0
+        b_prd( nz, 1 )= 0.0
 
 
-    !     CALL pardiso (pt_prd, maxfct_prd, mnum_prd, mtype_prd, phase_prd,      &
-    !             &        n_prd, a_prd, ia_prd, ja_prd, perm_prd, nrhs_prd,     &
-    !             &        iparm_prd, msglvl_prd, b_prd, x_prd, error_prd)
-    !     IF (error_prd /= 0)  THEN
-    !         PRINT*, "pardiso: error_prd =", error_prd
-    !         STOP
-    !     END IF
+        CALL pardiso (pt_prd, maxfct_prd, mnum_prd, mtype_prd, phase_prd,      &
+                &        n_prd, a_prd, ia_prd, ja_prd, perm_prd, nrhs_prd,     &
+                &        iparm_prd, msglvl_prd, b_prd, x_prd, error_prd)
+        IF (error_prd /= 0)  THEN
+            PRINT*, "pardiso: error_prd =", error_prd
+            STOP
+        END IF
 
-    !     do iz=1,nz
-    !         pot_hartree(iz)=x_prd(iz,1)
-    !     enddo
+        do iz=1,nz
+            pot_hartree(iz)=x_prd(iz,1)
+        enddo
 
-    !     do iz=1,nz-1
-    !         electric_field(iz)=(-pot_hartree(iz+1)+pot_hartree(iz))/dz
-    !     enddo
-    !     electric_field(nz)=electric_field(nz-1)
+        do iz=1,nz-1
+            electric_field_new(iz)=(-pot_hartree(iz+1)+pot_hartree(iz))/dz
+        enddo
+        electric_field_new(nz)=electric_field_new(nz-1)
 
-    !     !!!!!!!!!!!!! zapis do pliku !!!!!!!!!!!!!!!!!!
-    !     OPEN(1, FILE="data/charge.dat")
-    !     do iz=1,nz
-    !         z=(iz-1)*dz
-    !         write(1, '(200e20.12)') z/fnm2au, charge_trapped(iz)/fne2au   
-    !     enddo
-    !     CLOSE(1)
+        !!!!!!!!!!!!! zapis do pliku !!!!!!!!!!!!!!!!!!
+        OPEN(1, FILE="data/charge.dat")
+        do iz=1,nz
+            z=(iz-1)*dz
+            write(1, '(200e20.12)') z/fnm2au, charge_trapped(iz)/fne2au   
+        enddo
+        CLOSE(1)
 
-    !     OPEN(1, FILE="data/potential.dat")
-    !     do iz=1,nz
-    !     z=(iz-1)*dz
-    !     write(1, '(200e20.12)') z/fnm2au, -pot_hartree(iz)/feV2au 
-    !     enddo
-    !     CLOSE(1)
+        OPEN(1, FILE="data/potential.dat")
+        do iz=1,nz
+        z=(iz-1)*dz
+        write(1, '(200e20.12)') z/fnm2au, -pot_hartree(iz)/feV2au 
+        enddo
+        CLOSE(1)
 
-    !     OPEN(1, FILE="data/electric_field.dat")
-    !     do iz=1,nz
-    !     z=(iz-1)*dz
-    !     write(1, '(200e20.12)') z/fnm2au, electric_field(iz)*fnm2au/feV2au 
-    !     enddo
-    !     CLOSE(1)
+        OPEN(1, FILE="data/electric_field.dat")
+        do iz=1,nz
+        z=(iz-1)*dz
+        write(1, '(200e20.12)') z/fnm2au, electric_field(iz)*fnm2au/feV2au 
+        enddo
+        CLOSE(1)
 
-    !     OPEN(1, FILE="data/epsilon.dat")
-    !     do iz=1,nz
-    !         z=(iz-1)*dz
-    !         write(1, '(200e20.12)') z/fnm2au, permitivity(eps_0,electric_field(iz))
-    !     enddo
-    !     CLOSE(1)
+        OPEN(1, FILE="data/epsilon.dat")
+        do iz=1,nz
+            z=(iz-1)*dz
+            write(1, '(200e20.12)') z/fnm2au, permitivity(eps_0,electric_field(iz))
+        enddo
+        CLOSE(1)
 
-    
-    ! END SUBROUTINE POISSON_ZDIRECTION
+        DEALLOCATE(pot_hartree)
+        DEALLOCATE(ia_prd)
+        DEALLOCATE(ja_prd)
+        DEALLOCATE(a_prd)
+        DEALLOCATE(b_prd)
+        DEALLOCATE(x_prd)
+    END SUBROUTINE POISSON_ZDIRECTION
 
 
 END MODULE Poisson_Solver_Mod

@@ -50,5 +50,15 @@ $(OBJ_DIR)/poisson_solver.o: $(SRC_DIR)/poisson_solver.f90 $(OBJ_DIR)/dielectric
 $(OBJ_DIR)/main.o: $(SRC_DIR)/main.f90 $(OBJ_DIR)/dielectric.o $(OBJ_DIR)/poisson_solver.o
 	$(FC) $(FFLAGS) $(INCLUDES) -J$(MOD_DIR) -I$(MOD_DIR) -c $< -o $@
 
+DEBUG_FLAGS = -O0 -g -cpp -DDEBUG \
+              -m64 -ffixed-line-length-none \
+              -fdefault-real-8 -fdefault-double-8 \
+              -std=legacy -Wfatal-errors \
+              -ffpe-summary=none -fopenmp -ffree-form -fpic
+
+debug:
+	$(MAKE) clean
+	$(MAKE) FFLAGS="$(DEBUG_FLAGS)"
 clean:
 	rm -rf $(OBJ_DIR) $(MOD_DIR) $(TARGET)
+

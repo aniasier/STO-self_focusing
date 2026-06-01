@@ -22,7 +22,7 @@ PROGRAM MAIN
     ALLOCATE(electric_field_new(nz))
 
     CALL POISSON_ZDIRECTION_INIT(n0_trapped, L_trapped, eps_0, nz, dz, charge_trapped, electric_field)
-    ! CALL POISSON_ZDIRECTION(electric_field_new, electric_field, charge_trapped, eps_0,  nz, dz)
+    CALL POISSON_ZDIRECTION(electric_field_new, electric_field, charge_trapped, eps_0,  nz, dz)
 
     DEALLOCATE(charge_trapped)
     DEALLOCATE(electric_field)

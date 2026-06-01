@@ -583,6 +583,9 @@ CONTAINS
 
         ! allocate(electric_field_new(nz))
         allocate(pot_hartree(nz))
+        nrhs_prd=1
+        n_prd=nz
+        maxnonzeroprd=(n_prd-2)*3+2+1
 
         ALLOCATE( perm_prd(n_prd) )
         ALLOCATE( ia_prd(n_prd+1) )

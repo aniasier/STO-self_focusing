@@ -5,6 +5,7 @@ PROGRAM MAIN
     REAL*8 :: n0_trapped, L_trapped, eps_0, dz, m1, m2, thickness
     INTEGER*4 :: nz
     REAL*8, ALLOCATABLE :: charge_trapped(:)
+    REAL*8, ALLOCATABLE :: potential_z(:)
     REAL*8, ALLOCATABLE :: electric_field(:)
     REAL*8, ALLOCATABLE :: electric_field_new(:)
 
@@ -20,13 +21,16 @@ PROGRAM MAIN
     ALLOCATE(charge_trapped(nz))
     ALLOCATE(electric_field(nz))
     ALLOCATE(electric_field_new(nz))
+    ALLOCATE(potential_z(nz))
 
-    CALL POISSON_ZDIRECTION_INIT(n0_trapped, L_trapped, eps_0, nz, dz, charge_trapped, electric_field)
-    CALL POISSON_ZDIRECTION(electric_field_new, electric_field, charge_trapped, eps_0,  nz, dz)
+    CALL POISSON_ZDIRECTION_INIT(n0_trapped, L_trapped, eps_0, nz, dz, charge_trapped, electric_field, potential_z)
+    ! CALL POISSON_ZDIRECTION(electric_field_new, electric_field, charge_trapped, eps_0,  nz, dz)
+    
 
     DEALLOCATE(charge_trapped)
     DEALLOCATE(electric_field)
     DEALLOCATE(electric_field_new)
+    DEALLOCATE(potential_z)
 
 
 END PROGRAM MAIN

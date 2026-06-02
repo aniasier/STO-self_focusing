@@ -364,7 +364,7 @@ CONTAINS
     END SUBROUTINE Poisson
 
 
-    SUBROUTINE POISSON_ZDIRECTION_INIT(n0_trapped, L_trapped, eps_0,  nz, dz, charge_trapped, electric_field)
+    SUBROUTINE POISSON_ZDIRECTION_INIT(n0_trapped, L_trapped, eps_0,  nz, dz, charge_trapped, electric_field, pot_hartree)
         IMPLICIT NONE
 
         REAL*8, intent(in) :: eps_0
@@ -374,13 +374,12 @@ CONTAINS
         INTEGER, intent(in) :: nz
         REAL*8, INTENT(OUT) :: charge_trapped(nz)
         REAL*8, INTENT(OUT) :: electric_field(nz)
+        REAL*8, INTENT(OUT) :: pot_hartree(nz)
 
         !zmienne pomocnicze
         INTEGER :: i, iz
         REAL*8 :: charge_bc
         REAL*8 :: z
-
-        REAL*8, ALLOCATABLE :: pot_hartree(:)
 
         !PARDISO       
         INTEGER, ALLOCATABLE :: nmat(:)
@@ -395,11 +394,6 @@ CONTAINS
         REAL*8, ALLOCATABLE :: b_prd(:,:)
         REAL*8, ALLOCATABLE :: x_prd(:,:)
         INTEGER :: maxnonzeroprd, nelem
-
-
-
-        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!    tablice     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        allocate(pot_hartree(nz))
 
         !zakladamy warunki brzegowe Dirichleta stad nz-2
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -416,9 +410,9 @@ CONTAINS
         !!!!!!! rozwiazanie rownania Poissona dla pierwszej iteracji z charge_trapped !!!!!!!!!!!
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-        nrhs_prd=1
-        n_prd=nz
-        maxnonzeroprd=(n_prd-2)*3+2+1
+        nrhs_prd=1 ! number of rhs
+        n_prd=nz ! size of the matrix
+        maxnonzeroprd=(n_prd-2)*3+2+1 ! max non-zero
 
         ALLOCATE( perm_prd(n_prd) )
         ALLOCATE( ia_prd(n_prd+1) )
@@ -427,20 +421,20 @@ CONTAINS
         ALLOCATE( b_prd(n_prd,nrhs_prd) )
         ALLOCATE( x_prd(n_prd,nrhs_prd) )
 
-        pt_prd(:)= 0
-        maxfct_prd= 1
-        mnum_prd= 1
+        pt_prd(:)= 0 ! default solver handle
+        maxfct_prd= 1 ! max number of factorzation matrix
+        mnum_prd= 1 ! which factorization
         mtype_prd= 11   ! real nonsymmetric  
-        phase_prd= 13
-        msglvl_prd= 0
-        iparm_prd(:)= 0
+        phase_prd= 13 ! analysis, numerical factorization and solve
+        msglvl_prd= 0 ! no verobse
+        iparm_prd(:)= 0 ! default params
 
-        perm_prd(:)= 0
-        ia_prd(:)= 0
+        perm_prd(:)= 0 ! default permutation
+        ia_prd(:)= 0 
         ja_prd(:)= 0
-        a_prd(:)= 0.
-        b_prd(:,:)= 0.
-        x_prd(:,:)= 0.
+        a_prd(:)= 0. 
+        b_prd(:,:)= 0. ! right hand side
+        x_prd(:,:)= 0. ! solution vector
 
 
         charge_bc=0.0
@@ -543,7 +537,6 @@ CONTAINS
             write(1, '(200e20.12)') z/fnm2au, permitivity(eps_0,electric_field(iz))
         enddo
         CLOSE(1)
-        DEALLOCATE(pot_hartree)
         DEALLOCATE(perm_prd)
         DEALLOCATE(ia_prd)
         DEALLOCATE(ja_prd)

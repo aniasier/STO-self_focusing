@@ -21,12 +21,16 @@ MKL_LIBS = -Wl,--start-group \
            -Wl,--end-group \
            -lgomp -lpthread -lm -ldl
 
-SRC = $(SRC_DIR)/dielectric.f90 \
+SRC = $(SRC_DIR)/constants.f90 \
+      $(SRC_DIR)/utils.f90 \
+      $(SRC_DIR)/dielectric.f90 \
       $(SRC_DIR)/poisson_solver.f90 \
       $(SRC_DIR)/main.f90
 
 # Object files
-OBJ = $(OBJ_DIR)/dielectric.o \
+OBJ = $(OBJ_DIR)/constants.o \
+      $(OBJ_DIR)/utils.o \
+      $(OBJ_DIR)/dielectric.o \
       $(OBJ_DIR)/poisson_solver.o \
       $(OBJ_DIR)/main.o
 
@@ -41,13 +45,19 @@ directories:
 $(TARGET): $(OBJ)
 	$(FC) $(FFLAGS) -o $(TARGET) $(OBJ) $(MKL_LIBS)
 
-$(OBJ_DIR)/dielectric.o: $(SRC_DIR)/dielectric.f90
+$(OBJ_DIR)/constants.o: $(SRC_DIR)/constants.f90
 	$(FC) $(FFLAGS) $(INCLUDES) -J$(MOD_DIR) -I$(MOD_DIR) -c $< -o $@
 
-$(OBJ_DIR)/poisson_solver.o: $(SRC_DIR)/poisson_solver.f90 $(OBJ_DIR)/dielectric.o
+$(OBJ_DIR)/utils.o: $(SRC_DIR)/utils.f90 $(OBJ_DIR)/constants.o
 	$(FC) $(FFLAGS) $(INCLUDES) -J$(MOD_DIR) -I$(MOD_DIR) -c $< -o $@
 
-$(OBJ_DIR)/main.o: $(SRC_DIR)/main.f90 $(OBJ_DIR)/dielectric.o $(OBJ_DIR)/poisson_solver.o
+$(OBJ_DIR)/dielectric.o: $(SRC_DIR)/dielectric.f90 $(OBJ_DIR)/constants.o
+	$(FC) $(FFLAGS) $(INCLUDES) -J$(MOD_DIR) -I$(MOD_DIR) -c $< -o $@
+
+$(OBJ_DIR)/poisson_solver.o: $(SRC_DIR)/poisson_solver.f90 $(OBJ_DIR)/constants.o $(OBJ_DIR)/dielectric.o
+	$(FC) $(FFLAGS) $(INCLUDES) -J$(MOD_DIR) -I$(MOD_DIR) -c $< -o $@
+
+$(OBJ_DIR)/main.o: $(SRC_DIR)/main.f90 $(OBJ_DIR)/constants.o $(OBJ_DIR)/dielectric.o $(OBJ_DIR)/poisson_solver.o $(OBJ_DIR)/utils.o
 	$(FC) $(FFLAGS) $(INCLUDES) -J$(MOD_DIR) -I$(MOD_DIR) -c $< -o $@
 
 DEBUG_FLAGS = -O0 -g -cpp -DDEBUG \

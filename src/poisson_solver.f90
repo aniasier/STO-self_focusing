@@ -566,6 +566,7 @@ CONTAINS
         INTEGER :: maxnonzeroprd, nelem
 
         REAL*8, ALLOCATABLE :: pot_hartree(:)
+        PRINT *, "Solving Poisson for updated charge distribution with new electric field..."
 
         ! allocate(electric_field_new(nz))
         allocate(pot_hartree(nz))

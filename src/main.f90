@@ -3,21 +3,34 @@ PROGRAM MAIN
     USE Poisson_Solver_Mod
     USE DIELECTRIC 
     USE UTILS
+    USE WRITERS
     IMPLICIT NONE
-    REAL*8 :: n0_trapped, L_trapped, eps_0, dz, m1, m2, thickness
+    REAL*8 :: n0_trapped, L_trapped, eps_0, dz, dx, m1, m2, thickness
     INTEGER*4 :: nz, nx, ny
     REAL*8, ALLOCATABLE :: charge_trapped(:)
+    REAL*8, ALLOCATABLE :: charge_trapped3D(:, :, :)
     REAL*8, ALLOCATABLE :: potential_z(:)
     REAL*8, ALLOCATABLE :: electric_field(:)
     REAL*8, ALLOCATABLE :: electric_field_new(:)
     REAL*8, ALLOCATABLE :: epsilon(:, :, :)
     REAL*8, ALLOCATABLE :: potential(:, :, :)
+    REAL*8, ALLOCATABLE :: density(:, :, :)
+    REAL*8 :: x0, y0, z0 ! gauss centering
+    REAL*8 :: sigma ! size fo the initial gaussian
+    REAL*8 :: alfa ! relaxation parameter for poisson solver
+    REAL*8 :: tol
+    INTEGER*4 :: MAX_ITER
+    INTEGER*4 :: i, j, k
+    tol = 1.0e-6
+    MAX_ITER = 10000
+    alfa = 1.5
 
     n0_trapped = 5.0*1.0e13*fne2D2au
     L_trapped=15*fnm2au
     eps_0=100
     thickness=100.0*fnm2au
     dz = 0.1*fnm2au
+    dx = 0.1*fnm2au
     nz = ceiling(thickness/dz)
     nx =100
     ny = 100
@@ -30,20 +43,41 @@ PROGRAM MAIN
     ALLOCATE(potential_z(nz))
     ALLOCATE(epsilon(nx, ny,nz))
     ALLOCATE(potential(nx, ny,nz))
-
+    ALLOCATE(density(nx, ny,nz))
+    ALLOCATE(charge_trapped3D(nx, ny, nz))
     potential(:,:,:) =0.0d0
+
+    x0 = (nx-1)*dx/2.0d0
+    y0 = (ny-1)*dx/2.0d0
+    z0 = (nz-1)*dx/2.0d0
+    sigma = 1*fnm2au
 
     CALL POISSON_ZDIRECTION_INIT(n0_trapped, L_trapped, eps_0, nz, dz, charge_trapped, electric_field, potential_z)
     ! CALL POISSON_ZDIRECTION(electric_field_new, electric_field, charge_trapped, eps_0,  nz, dz)
     CALL GET_EPSILON(electric_field, eps_0, nx, ny, nz, epsilon)
+    CALL GET_CHARGE_TRAPPED3D(charge_trapped3D, charge_trapped, nx, ny, nz)
+    CALL GET_DENSITY(density, nx, ny, nz, x0, y0, z0, sigma, dx)
+    CALL WRITE_DENSITY_2D_XY(density, nx, ny, nz, dx, 'data/density.dat')
+    CALL Poisson_epsilon(potential, density, epsilon, alfa, nx, ny, nz, dx, tol, MAX_ITER, charge_trapped3D)
+    CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, 'data/potential.dat')
+    CALL WRITE_POTENTIAL_CROSS_SECTION(potential, nx, ny, nz, dx, 'data/potential_cross_section.dat')
 
-    ! CALL Poisson_epsilon(potential, density, epsilon, alfa, Nx, Ny, Nz, dx, tol, MAX_ITER, charge_trapped)
+    DO i=1, Nx
+        DO j=1, Ny
+            DO k=1, Nz
+                potential(i,j,k)=potential(i,j,k)+ potential_z(k)
+            END DO
+        END DO
+    END DO
 
     DEALLOCATE(charge_trapped)
     DEALLOCATE(electric_field)
     DEALLOCATE(electric_field_new)
     DEALLOCATE(potential_z)
     DEALLOCATE(epsilon)
+    DEALLOCATE(potential)
+    DEALLOCATE(density)
+    DEALLOCATE(charge_trapped3D)
 
 
 END PROGRAM MAIN

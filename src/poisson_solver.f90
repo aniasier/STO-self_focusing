@@ -172,10 +172,10 @@ CONTAINS
         IMPLICIT NONE
         
         INTEGER, INTENT(IN)           :: Nx, Ny, Nz, MAX_ITER
-        REAL*8,  INTENT(INOUT)        :: potential(Nx, Ny, Nz)
-        REAL*8,  INTENT(IN)           :: density(Nx, Ny, Nz)
-        REAL*8,  INTENT(IN)           :: epsilon(Nx, Ny, Nz) ! Now an array
-        REAL*8,  INTENT(IN)           :: charge_trapped(Nx, Ny, Nz)
+        REAL*8,  INTENT(INOUT)        :: potential(:,:,:)
+        REAL*8,  INTENT(IN)           :: density(:,:,:)
+        REAL*8,  INTENT(IN)           :: epsilon(:,:,:)
+        REAL*8,  INTENT(IN)           :: charge_trapped(:,:,:)
         REAL*8,  INTENT(IN)           :: alfa, dx, tol
         
         REAL*8, PARAMETER :: pi       = 3.141592653589793d0
@@ -297,20 +297,17 @@ CONTAINS
         
         ! Arguments
         INTEGER, INTENT(IN)           :: Nx, Ny, Nz, MAX_ITER
-        REAL*8,  INTENT(INOUT)        :: potential(Nx, Ny, Nz)
-        REAL*8,  INTENT(IN)           :: density(Nx, Ny, Nz)
+        REAL*8,  INTENT(INOUT)        :: potential(:,:,:)
+        REAL*8,  INTENT(IN)           :: density(:,:,:)
         REAL*8,  INTENT(IN)           :: alfa, epsilon
         REAL*8,  INTENT(IN)           :: dx, tol
-        
-        ! Provided Constants (Atomic Units)
-        REAL*8, PARAMETER :: fnm2au   = 18.897261
-        REAL*8, PARAMETER :: pi       = 3.141592653589793d0
-        REAL*8, PARAMETER :: fne2au   = 1.0d0/(1e21 * fnm2au**3)
-        REAL*8, PARAMETER :: epsilon0 = 1.0d0/(4.0d0 * pi)
         
         ! Internal Solver Parameters
         INTEGER           :: i, j, k, iter
         REAL*8            :: source, res, old_val, max_err
+        print *, "Entered Poisson"
+        print *, shape(potential)
+        print *, shape(density)
 
         ! Iterative Loop
         do iter = 1, MAX_ITER

@@ -4,6 +4,7 @@ PROGRAM MAIN
     USE DIELECTRIC 
     USE UTILS
     USE WRITERS
+    USE SCHRODINGER
     IMPLICIT NONE
     REAL*8 :: n0_trapped, L_trapped, eps_0, dz, dx, m1, m2, thickness
     INTEGER*4 :: nz, nx, ny
@@ -91,7 +92,7 @@ PROGRAM MAIN
     potential = potential - potential_eps0
     CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, 'data/potential_eps0.dat')
 
-    
+
 
     DEALLOCATE(charge_trapped)
     DEALLOCATE(electric_field)

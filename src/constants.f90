@@ -9,6 +9,7 @@ MODULE CONSTANTS
     double precision, PARAMETER :: kb=3.1668152e-6
     double precision, PARAMETER :: fne2D2au=1.0/(1e14*fnm2au**2)
     double precision, PARAMETER :: epsilon0=1.0/(4.0*pi)
+    double precision, PARAMETER :: fns2au = 41341374.575751
     CONTAINS
 
 

@@ -224,7 +224,7 @@ CONTAINS
             enddo
             enddo
 
-            i=Ny
+            i=Nx
             do k = 2, Nz - 1
             do j = 1, Ny 
                 potential(i,j,k) = potential(i-1,j,k)
@@ -385,7 +385,6 @@ CONTAINS
         REAL*8, ALLOCATABLE :: x_prd(:,:)
         INTEGER :: maxnonzeroprd, nelem
 
-        !zakladamy warunki brzegowe Dirichleta stad nz-2
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         !!!!!!!!!!!!!!!!!!!!!!!!!!!! tablica charge_trapped !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -539,6 +538,7 @@ CONTAINS
 
 
     SUBROUTINE POISSON_ZDIRECTION(electric_field_new, electric_field, charge_trapped, eps_0,  nz, dz)
+        ! solving in z direction but with changing epsilon
         IMPLICIT NONE
         REAL*8, INTENT (IN) :: electric_field(nz)
         REAL*8, intent(in) :: eps_0
@@ -563,9 +563,7 @@ CONTAINS
         INTEGER :: maxnonzeroprd, nelem
 
         REAL*8, ALLOCATABLE :: pot_hartree(:)
-        PRINT *, "Solving Poisson for updated charge distribution with new electric field..."
 
-        ! allocate(electric_field_new(nz))
         allocate(pot_hartree(nz))
         nrhs_prd=1
         n_prd=nz

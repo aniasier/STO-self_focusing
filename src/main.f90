@@ -76,12 +76,8 @@ PROGRAM MAIN
             END DO
         END DO
     END DO
-    CALL Poisson(potential_eps0, density_full, eps_0, alfa, Nx, Ny, Nz, dx, tol, MAX_ITER)
-    potential = potential - potential_eps0
-    CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, 'data/potential_eps0.dat')
-    ! stage 4: poisson with epsilon NOT changing
+    ! i need density_full because Poisson solver doesnt take charge trapped
     
-
     DO i=1, Nx
         DO j=1, Ny
             DO k=1, Nz
@@ -89,6 +85,13 @@ PROGRAM MAIN
             END DO
         END DO
     END DO
+
+    ! stage 4: poisson with epsilon NOT changing - epsilon 0 or epsilon R ????
+    CALL Poisson(potential_eps0, density_full, eps_0, alfa, Nx, Ny, Nz, dx, tol, MAX_ITER)
+    potential = potential - potential_eps0
+    CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, 'data/potential_eps0.dat')
+
+    
 
     DEALLOCATE(charge_trapped)
     DEALLOCATE(electric_field)

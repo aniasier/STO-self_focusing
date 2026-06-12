@@ -16,20 +16,29 @@ MODULE SCHRODINGER
         INTEGER*4 :: i,j,k, iter, MAX_TIME
         REAL*8 :: x, y, z, energy, energy_old, tol, norm, dt
 
-        MAX_TIME = 1000
-        dt = 0.1*fns2au
+        MAX_TIME = 10000
+        dt = 0.000000001*fns2au
         energy = 0.0d0
+
+        print*, "dt (au) =", dt
+        print*, "dx (au) =", dx
+        print*, "stability limit =", 1.0d0/(2.0d0*(3.0d0/(m1*dx**2)))
+        if (dt > 1.0d0/(2.0d0*(3.0d0/(m1*dx**2)))) then
+            print*, "WARNING: dt too large, will blow up"
+            stop
+        endif
 
 
         ALLOCATE(psi(Nx, Ny, Nz))
         ALLOCATE(psi_new(Nx, Ny, Nz))
         ALLOCATE(ham(Nx, Ny, Nz))
+        ham(:,:,:) = 0.0d0
         do k = 1, Nz
             do j = 1, Ny
                 do i = 1, Nx
                     x=(i-1)*dx
                     y=(j-1)*dx
-                    z=(k-1)*dx
+                    z=(k-1)*dz
                     psi(i,j,k)=initial_psi(x,y,z,x0,y0,z0,sigma)
                 enddo
             enddo
@@ -40,7 +49,7 @@ MODULE SCHRODINGER
         do k = 1, Nz
             do j = 1, Ny
                 do i = 1, Nx         
-                    val = val+abs(psi(i,j,k))**2*dx*dx*dx
+                    val = val+abs(psi(i,j,k))**2*dx*dx*dz
                 enddo
             enddo
         enddo
@@ -57,6 +66,7 @@ MODULE SCHRODINGER
         energy_old = 1.d99
         tol = 1.d-10
         DO iter =1, MAX_TIME
+            ham(:,:,:) = 0.0d0
             DO i=2, Nx-1
                 DO  j=2, Ny-1
                     DO k=2, Nz-1
@@ -73,16 +83,25 @@ MODULE SCHRODINGER
                 do j=1,Ny
                     do k=1,Nz
 
-                    norm = norm + abs(psi_new(i,j,k)**2)
+                    norm = norm + abs(psi_new(i,j,k))**2
 
                     end do
                 end do
             end do
-
+            ! print*, "norm =", norm
             norm = sqrt(norm*dx*dx*dz)
 
             psi_new = psi_new/norm
+            ! psi_new = psi_new / norm
+
+            psi_new(1,:,:)  = 0.d0
+            psi_new(Nx,:,:) = 0.d0
+            psi_new(:,1,:)  = 0.d0
+            psi_new(:,Ny,:) = 0.d0
+            psi_new(:,:,1)  = 0.d0
+            psi_new(:,:,Nz) = 0.d0
             energy = 0.d0
+            ham(:,:,:) = 0.0d0
 
             DO i=2, Nx-1
                 DO  j=2, Ny-1
@@ -112,7 +131,7 @@ MODULE SCHRODINGER
 
             energy_old = energy
             psi = psi_new
-            PRINT*, "Iteration:", iter, "Energy:", energy
+            PRINT*, "Iteration:", iter, "Energy:", energy/feV2au
         END DO
 
     END SUBROUTINE

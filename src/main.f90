@@ -23,9 +23,10 @@ PROGRAM MAIN
     REAL*8 :: alfa ! relaxation parameter for poisson solver
     REAL*8 :: tol
     INTEGER*4 :: MAX_ITER
-    INTEGER*4 :: i, j, k
+    INTEGER*4 :: i, j, k, iz
+    REAL*8 :: z
     tol = 1.0e-6
-    MAX_ITER = 10000
+    MAX_ITER = 100000
     alfa = 1.5
 
     n0_trapped = 5.0*1.0e13*fne2D2au
@@ -34,7 +35,7 @@ PROGRAM MAIN
     ! thickness=12.0*fnm2au
     dz = 0.1*fnm2au
     dx = 0.1*fnm2au
-    nz = 1000!ceiling(thickness/dz)
+    nz = 100!ceiling(thickness/dz)
     nx =100
     ny = 100
     m1=0.2
@@ -55,8 +56,8 @@ PROGRAM MAIN
 
     x0 = (nx-1)*dx/2.0d0
     y0 = (ny-1)*dx/2.0d0
-    z0 = (nz-1)*dx/2.0d0
-    sigma = 1*fnm2au
+    z0 = (nz-1)*dz/2.0d0
+    sigma = 2*fnm2au
     ! stage 1: z direction
     CALL POISSON_ZDIRECTION_INIT(n0_trapped, L_trapped, eps_0, nz, dz, charge_trapped, electric_field, potential_z)
     ! CALL POISSON_ZDIRECTION(electric_field_new, electric_field, charge_trapped, eps_0,  nz, dz)
@@ -88,13 +89,18 @@ PROGRAM MAIN
     END DO
 
     ! stage 4: poisson with epsilon NOT changing - epsilon 0 or epsilon R ????
-    CALL Poisson(potential_eps0, density_full, eps_0, alfa, Nx, Ny, Nz, dx, tol, MAX_ITER)
+    ! CALL Poisson(potential_eps0, density_full, eps_0, alfa, Nx, Ny, Nz, dx, tol, MAX_ITER)
+    ! subtracting -> only the influence of the changing eps at STO interface
     potential = potential - potential_eps0
     CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, 'data/potential_eps0.dat')
 
     ! state 5: imaginary time method for schrodinger equation
     potential = 0.0d0
+    print*, "Expected E =", (3.14159265d0**2/(2.0d0*m1) * &
+    (2.0d0/((Nx-1)*dx)**2 + 1.0d0/((Nz-1)*dz)**2))/ feV2au
+
     CALL IMAGINARY_TIME(potential, Nx, Ny, Nz, dx, dz, m1, m2, x0, y0, z0, sigma)
+
 
     DEALLOCATE(charge_trapped)
     DEALLOCATE(electric_field)

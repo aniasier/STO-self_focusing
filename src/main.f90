@@ -93,7 +93,8 @@ PROGRAM MAIN
     CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, 'data/potential_eps0.dat')
 
     ! state 5: imaginary time method for schrodinger equation
-    CALL IMAGINARY_TIME(potential, Nx, Ny, Nz, dx, dz, m1, m2, x0, y0, z0)
+    potential = 0.0d0
+    CALL IMAGINARY_TIME(potential, Nx, Ny, Nz, dx, dz, m1, m2, x0, y0, z0, sigma)
 
     DEALLOCATE(charge_trapped)
     DEALLOCATE(electric_field)

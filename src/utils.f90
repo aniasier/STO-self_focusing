@@ -14,46 +14,12 @@ MODULE UTILS
 
     end function initial_psi
 
-    SUBROUTINE GET_DENSITY(density, Nx, Ny, Nz, x0, y0, z0, sigma, dx)
+    SUBROUTINE GET_DENSITY(density, psi, Nx, Ny, Nz)
         IMPLICIT NONE
         INTEGER*4, INTENT(IN) ::Nx, Ny, Nz
-        REAL*8, INTENT(IN) :: x0, y0, z0, sigma, dx
+        REAL*8, INTENT(IN) :: psi(:,:,:)
         REAL*8, INTENT(OUT) ::density(Nx, Ny, Nz)
         INTEGER*4 :: i, j, k
-        REAL*8 :: x, y, z, val
-        REAL*8, ALLOCATABLE :: psi(:,:,:)
-
-
-        ALLOCATE(psi(Nx, Ny, Nz))
-        ! initalization
-        do k = 1, Nz
-            do j = 1, Ny
-                do i = 1, Nx
-                    x=(i-1)*dx
-                    y=(j-1)*dx
-                    z=(k-1)*dx
-                    psi(i,j,k)=initial_psi(x,y,z,x0,y0,z0,sigma)
-                enddo
-            enddo
-        enddo
-
-        ! calculating the norm
-        val=0.0
-        do k = 1, Nz
-            do j = 1, Ny
-                do i = 1, Nx         
-                    val = val+abs(psi(i,j,k))**2*dx*dx*dx
-                enddo
-            enddo
-        enddo
-        ! normalization
-        do k = 1, Nz
-            do j = 1, Ny
-                do i = 1, Nx         
-                    psi(i,j,k) = psi(i,j,k)/sqrt(val)
-                enddo
-            enddo
-        enddo
 
         !!!!! inital electron concentration
         do k = 1, Nz
@@ -63,8 +29,6 @@ MODULE UTILS
             enddo
         enddo
         enddo
-        DEALLOCATE(psi)
-
     END SUBROUTINE GET_DENSITY
 
     SUBROUTINE GET_CHARGE_TRAPPED3D(charge_trapped3D, charge_trapped, nx, ny, nz)
@@ -82,5 +46,43 @@ MODULE UTILS
             END DO
         END DO
     END SUBROUTINE GET_CHARGE_TRAPPED3D
+
+    SUBROUTINE GET_INIT_PSI(psi, Nx, Ny, Nz, x0, y0, z0, sigma, dx, dz)
+        IMPLICIT NONE
+        REAL*8, INTENT(OUT) :: psi(Nx, Ny, Nz)
+        INTEGER*4, INTENT(IN) :: Nx, Ny, Nz
+        REAL*8, INTENT(IN) :: x0, y0, z0, sigma, dx, dz
+        INTEGER*4 :: i, j, k
+        REAL*8 :: x, y, z, val
+
+        do k = 1, Nz
+            do j = 1, Ny
+                do i = 1, Nx
+                    x=(i-1)*dx
+                    y=(j-1)*dx
+                    z=(k-1)*dz
+                    psi(i,j,k)=initial_psi(x,y,z,x0,y0,z0,sigma)
+                enddo
+            enddo
+        enddo
+
+        ! calculating the norm
+        val=0.0
+        do k = 1, Nz
+            do j = 1, Ny
+                do i = 1, Nx         
+                    val = val+abs(psi(i,j,k))**2*dx*dx*dz
+                enddo
+            enddo
+        enddo
+        ! normalization
+        do k = 1, Nz
+            do j = 1, Ny
+                do i = 1, Nx         
+                    psi(i,j,k) = psi(i,j,k)/sqrt(val)
+                enddo
+            enddo
+        enddo
+    END SUBROUTINE GET_INIT_PSI
 
 END MODULE UTILS

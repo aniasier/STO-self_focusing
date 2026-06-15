@@ -2,10 +2,13 @@
 
 # TO-DO
 ## Software
--[] input file
--[] runner
+- [ ] input file
+
+- [ ] runner
 
 ## Model
 ### v1
+
 z-potenital calculated once, only ground state, one electron
--[] test parameters
+
+- [ ] test parameters

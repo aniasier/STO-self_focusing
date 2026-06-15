@@ -36,7 +36,7 @@ PROGRAM MAIN
     alfa = 1.5
 
     n0_trapped = 5.0*1.0e13*fne2D2au
-    L_trapped=15*fnm2au
+    L_trapped=10*fnm2au
     eps_0=100
     ! thickness=12.0*fnm2au
     dz = 0.1*fnm2au
@@ -122,7 +122,7 @@ PROGRAM MAIN
         energy_old = energy
     END DO
 
-    PRINT*, energy/feV2au
+    PRINT*, "ENERGY (meV):", energy/feV2au
 
 
     DEALLOCATE(charge_trapped)

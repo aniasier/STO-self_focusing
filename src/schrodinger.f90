@@ -4,11 +4,12 @@ MODULE SCHRODINGER
     IMPLICIT NONE
     CONTAINS
 
-    SUBROUTINE IMAGINARY_TIME(potential, Nx, Ny, Nz, dx, dz, m1, m2, init_psi, final_psi)
+    SUBROUTINE IMAGINARY_TIME(potential, Nx, Ny, Nz, dx, dz, m1, m2, init_psi, final_psi, final_energy)
         IMPLICIT NONE
         REAL*8, INTENT(IN) :: potential(:,:,:)
         REAL*8, INTENT(IN) :: init_psi(:,:,:)
         REAL*8, INTENT(OUT) :: final_psi(Nx,Ny,Nz)
+        REAL*8, INTENT(OUT) :: final_energy
         REAL*8, INTENT(IN) :: dx, dz, m1, m2
         INTEGER*4, INTENT(IN) :: Nx, Ny, Nz
         REAL*8, ALLOCATABLE :: psi(:,:,:)
@@ -99,6 +100,7 @@ MODULE SCHRODINGER
             if (abs(energy-energy_old) < tol) then
                 print*, "Converged after", iter, "iterations"
                 final_psi = psi
+                final_energy = energy
                 exit
             endif
 
@@ -107,6 +109,7 @@ MODULE SCHRODINGER
             PRINT*, "Iteration:", iter, "Energy:", energy/feV2au
         END DO
         final_psi = psi
+        final_energy = energy
     END SUBROUTINE
 
 

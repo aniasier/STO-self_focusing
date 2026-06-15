@@ -23,12 +23,16 @@ PROGRAM MAIN
     REAL*8 :: x0, y0, z0 ! gauss centering
     REAL*8 :: sigma ! size fo the initial gaussian
     REAL*8 :: alfa ! relaxation parameter for poisson solver
-    REAL*8 :: tol
-    INTEGER*4 :: MAX_ITER
+    REAL*8 :: tol, tol_scf
+    INTEGER*4 :: MAX_ITER, iter
+    INTEGER*4 :: MAX_SCF_ITER
     INTEGER*4 :: i, j, k, iz
     REAL*8 :: z
+    REAL*8 :: energy, energy_old
     tol = 1.0e-6
+    tol_scf = 1.0e-6
     MAX_ITER = 10000
+    MAX_SCF_ITER = 10000
     alfa = 1.5
 
     n0_trapped = 5.0*1.0e13*fne2D2au
@@ -37,9 +41,9 @@ PROGRAM MAIN
     ! thickness=12.0*fnm2au
     dz = 0.1*fnm2au
     dx = 0.1*fnm2au
-    nz = 20!ceiling(thickness/dz)
-    nx =20
-    ny = 20
+    nz = 50!ceiling(thickness/dz)
+    nx =50
+    ny = 50
     m1=0.2
     m2=3.5
 
@@ -61,7 +65,7 @@ PROGRAM MAIN
     x0 = (nx-1)*dx/2.0d0
     y0 = (ny-1)*dx/2.0d0
     z0 = (nz-1)*dz/2.0d0
-    sigma = 1*fnm2au
+    sigma = 3*fnm2au
     ! stage 1: z direction
     CALL POISSON_ZDIRECTION_INIT(n0_trapped, L_trapped, eps_0, nz, dz, charge_trapped, electric_field, potential_z)
     ! CALL POISSON_ZDIRECTION(electric_field_new, electric_field, charge_trapped, eps_0,  nz, dz)
@@ -72,41 +76,53 @@ PROGRAM MAIN
     CALL GET_DENSITY(density, init_psi, nx, ny, nz)
     CALL WRITE_DENSITY_2D_XY(density, nx, ny, nz, dx,dz, 'data/density.dat')
     ! stage 3: poisson in 3d with changing dielectric function
-    CALL Poisson_epsilon(potential, density, epsilon, alfa, nx, ny, nz, dx, tol, MAX_ITER, charge_trapped3D)
-    CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, 'data/potential.dat')
-    CALL WRITE_POTENTIAL_CROSS_SECTION(potential, nx, ny, nz, dx, 'data/potential_cross_section.dat')
-    density_full = 0.0d0
-    DO i=1, Nx
-        DO j=1, Ny
-            DO k=1, Nz
-                density_full(i,j,k)=density(i,j,k)+ charge_trapped3D(i,j,k)
+    energy_old = 1.d99
+    DO iter = 1, MAX_SCF_ITER
+        PRINT*, "SCF ITERATION:", iter
+        CALL Poisson_epsilon(potential, density, epsilon, alfa, nx, ny, nz, dx, tol, MAX_ITER, charge_trapped3D)
+        CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, 'data/potential.dat')
+        CALL WRITE_POTENTIAL_CROSS_SECTION(potential, nx, ny, nz, dx, 'data/potential_cross_section.dat')
+        density_full = 0.0d0
+        DO i=1, Nx
+            DO j=1, Ny
+                DO k=1, Nz
+                    density_full(i,j,k)=density(i,j,k)+ charge_trapped3D(i,j,k)
+                END DO
             END DO
         END DO
-    END DO
-    ! i need density_full because Poisson solver doesnt take charge trapped
-    
-    DO i=1, Nx
-        DO j=1, Ny
-            DO k=1, Nz
-                potential(i,j,k)=potential(i,j,k)+ potential_z(k)
+        ! i need density_full because Poisson solver doesnt take charge trapped
+        
+        DO i=1, Nx
+            DO j=1, Ny
+                DO k=1, Nz
+                    potential(i,j,k)=potential(i,j,k)+ potential_z(k)
+                END DO
             END DO
         END DO
+
+        ! stage 4: poisson with epsilon NOT changing - epsilon 0 or epsilon R ????
+        CALL Poisson(potential_eps0, density_full, eps_0, alfa, Nx, Ny, Nz, dx, tol, MAX_ITER)
+        ! subtracting -> only the influence of the changing eps at STO interface
+        potential = potential - potential_eps0
+        CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, 'data/potential_final.dat')
+
+        ! state 5: imaginary time method for schrodinger equation
+        ! potential = 0.0d0
+        ! print*, "Expected E =", (3.14159265d0**2/(2.0d0*m1) * &
+        ! (2.0d0/((Nx-1)*dx)**2 + 1.0d0/((Nz-1)*dz)**2))/ feV2au
+
+        CALL IMAGINARY_TIME(potential, Nx, Ny, Nz, dx, dz, m1, m2, init_psi, final_psi, energy)
+        CALL GET_DENSITY(density, final_psi, nx, ny, nz)
+        CALL WRITE_DENSITY_2D_XY(density, Nx, Ny, Nz, dx, dz, 'data/density3D.dat')
+
+        if (abs(energy-energy_old) < tol_scf) then
+                print*, "Converged after", iter, "iterations"
+                exit
+            endif
+        energy_old = energy
     END DO
 
-    ! stage 4: poisson with epsilon NOT changing - epsilon 0 or epsilon R ????
-    CALL Poisson(potential_eps0, density_full, eps_0, alfa, Nx, Ny, Nz, dx, tol, MAX_ITER)
-    ! subtracting -> only the influence of the changing eps at STO interface
-    potential = potential - potential_eps0
-    CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, 'data/potential_final.dat')
-
-    ! state 5: imaginary time method for schrodinger equation
-    ! potential = 0.0d0
-    ! print*, "Expected E =", (3.14159265d0**2/(2.0d0*m1) * &
-    ! (2.0d0/((Nx-1)*dx)**2 + 1.0d0/((Nz-1)*dz)**2))/ feV2au
-
-    CALL IMAGINARY_TIME(potential, Nx, Ny, Nz, dx, dz, m1, m2, init_psi, final_psi)
-    CALL GET_DENSITY(density, final_psi, nx, ny, nz)
-    CALL WRITE_DENSITY_2D_XY(density, Nx, Ny, Nz, dx, dz, 'data/density3D.dat')
+    PRINT*, energy/feV2au
 
 
     DEALLOCATE(charge_trapped)

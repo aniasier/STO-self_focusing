@@ -1,13 +1,13 @@
 PROGRAM MAIN
     USE CONSTANTS
+    USE INDATA
     USE Poisson_Solver_Mod
     USE DIELECTRIC 
     USE UTILS
     USE WRITERS
     USE SCHRODINGER
     IMPLICIT NONE
-    REAL*8 :: n0_trapped, L_trapped, eps_0, dz, dx, m1, m2, thickness
-    INTEGER*4 :: nz, nx, ny
+    REAL*8 :: eps_0
     REAL*8, ALLOCATABLE :: charge_trapped(:)
     REAL*8, ALLOCATABLE :: charge_trapped3D(:, :, :)
     REAL*8, ALLOCATABLE :: potential_z(:)
@@ -21,31 +21,13 @@ PROGRAM MAIN
     REAL*8, ALLOCATABLE :: init_psi(:,:,:)
     REAL*8, ALLOCATABLE :: final_psi(:,:,:)
     REAL*8 :: x0, y0, z0 ! gauss centering
-    REAL*8 :: sigma ! size fo the initial gaussian
-    REAL*8 :: alfa ! relaxation parameter for poisson solver
-    REAL*8 :: tol, tol_scf
-    INTEGER*4 :: MAX_ITER, iter
-    INTEGER*4 :: MAX_SCF_ITER
-    INTEGER*4 :: i, j, k, iz
+    INTEGER*4 :: i, j, k, iz, iter
     REAL*8 :: z
     REAL*8 :: energy, energy_old
-    tol = 1.0e-6
-    tol_scf = 1.0e-6
-    MAX_ITER = 10000
-    MAX_SCF_ITER = 10000
-    alfa = 1.5
 
-    n0_trapped = 5.0*1.0e13*fne2D2au
-    L_trapped=10*fnm2au
-    eps_0=100
+    eps_0=100 ! <- CO TO JEST ZA WARTOSĆ???????
     ! thickness=12.0*fnm2au
-    dz = 0.1*fnm2au
-    dx = 0.1*fnm2au
-    nz = 50!ceiling(thickness/dz)
-    nx =50
-    ny = 50
-    m1=0.2
-    m2=3.5
+    CALL GET_INDATA("input.nml")
 
     ALLOCATE(charge_trapped(nz))
     ALLOCATE(electric_field(nz))
@@ -65,7 +47,6 @@ PROGRAM MAIN
     x0 = (nx-1)*dx/2.0d0
     y0 = (ny-1)*dx/2.0d0
     z0 = (nz-1)*dz/2.0d0
-    sigma = 3*fnm2au
     ! stage 1: z direction
     CALL POISSON_ZDIRECTION_INIT(n0_trapped, L_trapped, eps_0, nz, dz, charge_trapped, electric_field, potential_z)
     ! CALL POISSON_ZDIRECTION(electric_field_new, electric_field, charge_trapped, eps_0,  nz, dz)
@@ -77,7 +58,7 @@ PROGRAM MAIN
     CALL WRITE_DENSITY_2D_XY(density, nx, ny, nz, dx,dz, 'data/density.dat')
     ! stage 3: poisson in 3d with changing dielectric function
     energy_old = 1.d99
-    DO iter = 1, MAX_SCF_ITER
+    DO iter = 1, MAX_ITER_SCF
         PRINT*, "SCF ITERATION:", iter
         CALL Poisson_epsilon(potential, density, epsilon, alfa, nx, ny, nz, dx, tol, MAX_ITER, charge_trapped3D)
         CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, 'data/potential.dat')

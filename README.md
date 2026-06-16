@@ -2,7 +2,7 @@
 
 # TO-DO
 ## Software
-- [ ] input file
+- [x] input file
 
 - [ ] runner
 

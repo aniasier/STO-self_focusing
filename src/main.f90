@@ -25,7 +25,7 @@ PROGRAM MAIN
     REAL*8 :: z
     REAL*8 :: energy, energy_old
 
-    eps_0=100 ! <- CO TO JEST ZA WARTOSĆ???????
+    eps_0=100 ! <- do wzoru na permittivity wyraz wolny
     ! thickness=12.0*fnm2au
     CALL GET_INDATA("input.nml")
 

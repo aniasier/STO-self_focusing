@@ -1,7 +1,7 @@
 &calculation_parameters
-    Nx=100,
-    Ny=100,
-    Nz=100,
+    Nx=60,
+    Ny=60,
+    Nz=60,
     dx=0.1,
     dz=0.1,
     MAX_ITER=10000,
@@ -17,6 +17,6 @@
     m1=0.2,
     m2=3.5,
     norbital=1,
-    sigma=5.0
+    sigma=1.0
 &end
 

@@ -2,7 +2,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Schrodinger Poisson method !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-MODULE Poisson_Solver_Mod
+MODULE Poisson_Solver
     USE CONSTANTS
     USE DIELECTRIC
     IMPLICIT NONE
@@ -168,7 +168,7 @@ CONTAINS
 
 
     !!!!!!!!!!!! normal Gauss-Seidl method for a spatially changing dielectric constant !!!!!!!!!!!!!!!!!!!!!
-    SUBROUTINE Poisson_epsilon(potential, density, epsilon, alfa, Nx, Ny, Nz, dx, tol, MAX_ITER, charge_trapped)
+    SUBROUTINE Poisson_epsilon(potential, density, epsilon, alfa, Nx, Ny, Nz, dx, dz, tol, MAX_ITER, charge_trapped)
         IMPLICIT NONE
         
         INTEGER, INTENT(IN)           :: Nx, Ny, Nz, MAX_ITER
@@ -176,7 +176,7 @@ CONTAINS
         REAL*8,  INTENT(IN)           :: density(:,:,:)
         REAL*8,  INTENT(IN)           :: epsilon(:,:,:)
         REAL*8,  INTENT(IN)           :: charge_trapped(:,:,:)
-        REAL*8,  INTENT(IN)           :: alfa, dx, tol
+        REAL*8,  INTENT(IN)           :: alfa, dx, tol, dz
         
         REAL*8, PARAMETER :: pi       = 3.141592653589793d0
         REAL*8, PARAMETER :: epsilon0 = 1.0d0/(4.0d0 * pi)
@@ -193,7 +193,7 @@ CONTAINS
             do j = 1, Ny
             val=0.0
             do k = 1, Nz
-                val=val+(density(i,j,k)+charge_trapped(i, j, k))*dx
+                val=val+(density(i,j,k)+charge_trapped(i, j, k))*dz
             enddo
             sigma_2d(i,j)=val
             ENDDO
@@ -697,5 +697,5 @@ CONTAINS
     END SUBROUTINE POISSON_ZDIRECTION
 
 
-END MODULE Poisson_Solver_Mod
+END MODULE Poisson_Solver
 

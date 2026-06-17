@@ -1,7 +1,7 @@
 PROGRAM MAIN
     USE CONSTANTS
     USE INDATA
-    USE Poisson_Solver_Mod
+    USE Poisson_Solver
     USE DIELECTRIC 
     USE UTILS
     USE WRITERS
@@ -24,6 +24,7 @@ PROGRAM MAIN
     INTEGER*4 :: i, j, k, iz, iter
     REAL*8 :: z
     REAL*8 :: energy, energy_old
+    CHARACTER(LEN=50) :: filename
 
     eps_0=100 ! <- do wzoru na permittivity wyraz wolny
     ! thickness=12.0*fnm2au
@@ -60,8 +61,9 @@ PROGRAM MAIN
     energy_old = 1.d99
     DO iter = 1, MAX_ITER_SCF
         PRINT*, "SCF ITERATION:", iter
-        CALL Poisson_epsilon(potential, density, epsilon, alfa, nx, ny, nz, dx, tol, MAX_ITER, charge_trapped3D)
-        CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, 'data/potential.dat')
+        CALL Poisson_epsilon(potential, density, epsilon, alfa, nx, ny, nz, dx, dz, tol, MAX_ITER, charge_trapped3D)
+        WRITE(filename, '(A,I0,A)') 'data/potential_', iter, '.dat'
+        CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, filename)
         CALL WRITE_POTENTIAL_CROSS_SECTION(potential, nx, ny, nz, dx, 'data/potential_cross_section.dat')
         density_full = 0.0d0
         DO i=1, Nx
@@ -85,7 +87,8 @@ PROGRAM MAIN
         CALL Poisson(potential_eps0, density_full, eps_0, alfa, Nx, Ny, Nz, dx, tol, MAX_ITER)
         ! subtracting -> only the influence of the changing eps at STO interface
         potential = potential - potential_eps0
-        CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, 'data/potential_final.dat')
+        WRITE(filename, '(A,I0,A)') 'data/potential_final_', iter, '.dat'
+        CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, filename)
 
         ! state 5: imaginary time method for schrodinger equation
         ! potential = 0.0d0
@@ -94,7 +97,8 @@ PROGRAM MAIN
 
         CALL IMAGINARY_TIME(potential, Nx, Ny, Nz, dx, dz, m1, m2, init_psi, final_psi, energy)
         CALL GET_DENSITY(density, final_psi, nx, ny, nz)
-        CALL WRITE_DENSITY_2D_XY(density, Nx, Ny, Nz, dx, dz, 'data/density3D.dat')
+        WRITE(filename, '(A,I0,A)') 'data/density3D_', iter, '.dat'
+        CALL WRITE_DENSITY_2D_XY(density, Nx, Ny, Nz, dx, dz, filename)
 
         if (abs(energy-energy_old) < tol_scf) then
                 print*, "Converged after", iter, "iterations"

@@ -186,6 +186,7 @@ CONTAINS
         REAL*8            :: sum_e, res, old_val, max_err, source, val
 
         REAL*8, ALLOCATABLE :: sigma_2d(:,:)
+        
         allocate(sigma_2d(Nx,Ny))
 
         !determine sigma_2d
@@ -289,6 +290,114 @@ CONTAINS
         DEALLOCATE(sigma_2d)
 
     END SUBROUTINE Poisson_epsilon
+
+
+
+     !!!!!!!!!!!! normal Gauss-Seidl method for a spatially changing dielectric constant !!!!!!!!!!!!!!!!!!!!!
+    SUBROUTINE Poisson_epsilon_no_charge(potential, density, epsilon, alfa, Nx, Ny, Nz, dx, dz, tol, MAX_ITER)
+        IMPLICIT NONE
+        
+        INTEGER, INTENT(IN)           :: Nx, Ny, Nz, MAX_ITER
+        REAL*8,  INTENT(INOUT)        :: potential(:,:,:)
+        REAL*8,  INTENT(IN)           :: density(:,:,:)
+        REAL*8,  INTENT(IN)           :: epsilon(:,:,:)
+        REAL*8,  INTENT(IN)           :: alfa, dx, tol, dz
+        
+        REAL*8, PARAMETER :: pi       = 3.141592653589793d0
+        REAL*8, PARAMETER :: epsilon0 = 1.0d0/(4.0d0 * pi)
+        
+        INTEGER           :: i, j, k, iter
+        REAL*8            :: e_ip, e_im, e_jp, e_jm, e_kp, e_km
+        REAL*8            :: sum_e, res, old_val, max_err, source, val
+
+        do iter = 1, MAX_ITER
+            max_err = 0.0d0
+
+            ! --- 1. Update the Mapped Boundary at z=0 (k=1) ---
+            k = 1
+            do j = 2, Ny - 1
+                do i = 2, Nx - 1
+                    old_val = potential(i,j,k)
+                    
+                    res=potential(i,j,k+1) 
+
+                    potential(i,j,k) = (1.0d0 - alfa) * old_val + alfa * res
+                    max_err = max(max_err, abs(potential(i,j,k) - old_val))
+                end do
+            end do
+            
+            ! ---------2. Neumann BC at x and y boundaries (zero normal derivative) ---------
+            i=1
+            do k = 2, Nz - 1
+            do j = 1, Ny 
+                potential(i,j,k) = potential(i+1,j,k)
+            enddo
+            enddo
+
+            i=Nx
+            do k = 2, Nz - 1
+            do j = 1, Ny 
+                potential(i,j,k) = potential(i-1,j,k)
+            enddo
+            enddo
+
+            j=1
+            do k = 2, Nz - 1
+            do i = 1, Nx
+                potential(i,j,k) = potential(i,j+1,k)
+            enddo
+            enddo
+
+            j=Ny
+            do k = 2, Nz - 1
+            do i = 1, Nx
+                potential(i,j,k) = potential(i,j-1,k)
+            enddo
+            enddo
+
+
+            do k = 2, Nz - 1
+                do j = 2, Ny - 1
+                    do i = 2, Nx - 1
+                        
+                        old_val = potential(i,j,k)
+                        
+                        ! 1. Calculate epsilon at mid-points (half-steps)
+                        e_ip = (epsilon(i+1,j,k) + epsilon(i,j,k)) / 2.0d0
+                        e_im = (epsilon(i-1,j,k) + epsilon(i,j,k)) / 2.0d0
+                        e_jp = (epsilon(i,j+1,k) + epsilon(i,j,k)) / 2.0d0
+                        e_jm = (epsilon(i,j-1,k) + epsilon(i,j,k)) / 2.0d0
+                        e_kp = (epsilon(i,j,k+1) + epsilon(i,j,k)) / 2.0d0
+                        e_km = (epsilon(i,j,k-1) + epsilon(i,j,k)) / 2.0d0
+                        
+                        sum_e = e_ip + e_im + e_jp + e_jm + e_kp + e_km
+                        
+                        ! 2. The source term (Right Hand Side)
+                        source = -(density(i,j,k)) / epsilon0 * dx * dx
+                        
+                        ! 3. Calculate Gauss-Seidel result
+                        ! This is now a weighted average of neighbors
+                        res = (e_ip*potential(i+1,j,k) + e_im*potential(i-1,j,k) + &
+                            e_jp*potential(i,j+1,k) + e_jm*potential(i,j-1,k) + &
+                            e_kp*potential(i,j,k+1) + e_km*potential(i,j,k-1) + &
+                            source) / sum_e
+                        
+                        ! 4. SOR Mixing
+                        potential(i,j,k) = (1.0d0 - alfa) * old_val + alfa * res
+                        
+                        max_err = max(max_err, abs(potential(i,j,k) - old_val))
+                     end do
+                end do
+            end do
+
+            !BC at z=0
+
+            print *, iter, max_err
+            if (max_err < TOL) exit
+        end do
+        print *, "Converged in ", iter, " iterations. Final error: ", max_err
+
+    END SUBROUTINE Poisson_epsilon_no_charge
 
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! normal Gauss-Seidl method !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

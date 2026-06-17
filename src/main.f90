@@ -42,7 +42,7 @@ PROGRAM MAIN
     ALLOCATE(charge_trapped3D(nx, ny, nz))
     ALLOCATE(init_psi(nx, ny, nz))
     ALLOCATE(final_psi(nx, ny, nz))
-    potential(:,:,:) =0.0d0
+    
     potential_eps0(:,:,:) =0.0d0
 
     x0 = (nx-1)*dx/2.0d0
@@ -59,32 +59,34 @@ PROGRAM MAIN
     CALL WRITE_DENSITY_2D_XY(density, nx, ny, nz, dx,dz, 'data/density.dat')
     ! stage 3: poisson in 3d with changing dielectric function
     energy_old = 1.d99
+    ! charge_trapped3D(:,:,:) = 0.0d0
     DO iter = 1, MAX_ITER_SCF
+        potential(:,:,:) =0.0d0
         PRINT*, "SCF ITERATION:", iter
-        CALL Poisson_epsilon(potential, density, epsilon, alfa, nx, ny, nz, dx, dz, tol, MAX_ITER, charge_trapped3D)
+        CALL Poisson_epsilon_no_charge(potential, density, epsilon, alfa, nx, ny, nz, dx, dz, tol, MAX_ITER)
         WRITE(filename, '(A,I0,A)') 'data/potential_', iter, '.dat'
         CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, filename)
         CALL WRITE_POTENTIAL_CROSS_SECTION(potential, nx, ny, nz, dx, 'data/potential_cross_section.dat')
-        density_full = 0.0d0
-        DO i=1, Nx
-            DO j=1, Ny
-                DO k=1, Nz
-                    density_full(i,j,k)=density(i,j,k)+ charge_trapped3D(i,j,k)
-                END DO
-            END DO
-        END DO
+        ! density_full = 0.0d0
+        ! DO i=1, Nx
+        !     DO j=1, Ny
+        !         DO k=1, Nz
+        !             density_full(i,j,k)=density(i,j,k)+ charge_trapped3D(i,j,k)
+        !         END DO
+        !     END DO
+        ! END DO
         ! i need density_full because Poisson solver doesnt take charge trapped
         
         DO i=1, Nx
             DO j=1, Ny
                 DO k=1, Nz
-                    potential(i,j,k)=potential(i,j,k)+ potential_z(k)
+                    potential(i,j,k)=-potential(i,j,k)+potential_z(k)
                 END DO
             END DO
         END DO
 
-        ! stage 4: poisson with epsilon NOT changing - epsilon 0 or epsilon R ????
-        CALL Poisson(potential_eps0, density_full, eps_0, alfa, Nx, Ny, Nz, dx, tol, MAX_ITER)
+        ! stage 4: poisson with epsilon NOT changing
+        CALL Poisson(potential_eps0, density, eps_0, alfa, Nx, Ny, Nz, dx, tol, MAX_ITER)
         ! subtracting -> only the influence of the changing eps at STO interface
         potential = potential - potential_eps0
         WRITE(filename, '(A,I0,A)') 'data/potential_final_', iter, '.dat'
@@ -105,6 +107,7 @@ PROGRAM MAIN
                 exit
             endif
         energy_old = energy
+        init_psi=final_psi
     END DO
 
     PRINT*, "ENERGY (meV):", energy/feV2au

@@ -99,7 +99,7 @@ MODULE SCHRODINGER
             energy = energy*dx*dx*dz
             if (abs(energy-energy_old) < tol) then
                 print*, "Converged after", iter, "iterations"
-                final_psi = psi
+                final_psi = psi_new
                 final_energy = energy
                 exit
             endif

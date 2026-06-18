@@ -3,6 +3,7 @@ MODULE CONSTANTS
             ! Physical Constants in Atomic Units
     !parametry
     double precision, PARAMETER :: fnm2au=18.897261
+    double precision, PARAMETER :: fm2au=18.897261*1e9
     double precision, PARAMETER :: feV2au=0.03674932587
     double precision, PARAMETER :: pi=3.14159265359
     double precision, PARAMETER :: fne2au=1.0/(1e21*fnm2au**3)

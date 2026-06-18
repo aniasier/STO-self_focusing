@@ -29,6 +29,7 @@ MODULE UTILS
             enddo
         enddo
         enddo
+
     END SUBROUTINE GET_DENSITY
 
     SUBROUTINE GET_CHARGE_TRAPPED3D(charge_trapped3D, charge_trapped, nx, ny, nz)
@@ -75,6 +76,7 @@ MODULE UTILS
                 enddo
             enddo
         enddo
+
         ! normalization
         do k = 1, Nz
             do j = 1, Ny

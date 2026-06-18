@@ -35,7 +35,7 @@ MODULE SCHRODINGER
         psi = init_psi
        
         energy_old = 1.d99
-        tol = 1.d-10
+        tol = 1.d-6
         DO iter =1, MAX_TIME
             ham(:,:,:) = 0.0d0
             DO i=2, Nx-1

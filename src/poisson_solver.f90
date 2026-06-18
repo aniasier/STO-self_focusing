@@ -303,12 +303,11 @@ CONTAINS
         REAL*8,  INTENT(IN)           :: epsilon(:,:,:)
         REAL*8,  INTENT(IN)           :: alfa, dx, tol, dz
         
-        REAL*8, PARAMETER :: pi       = 3.141592653589793d0
-        REAL*8, PARAMETER :: epsilon0 = 1.0d0/(4.0d0 * pi)
-        
         INTEGER           :: i, j, k, iter
         REAL*8            :: e_ip, e_im, e_jp, e_jm, e_kp, e_km
         REAL*8            :: sum_e, res, old_val, max_err, source, val
+        print*, maxval(density)
+        print*, 1/(2*pi*(5.0*fnm2au)**2)**(1.5)
 
         do iter = 1, MAX_ITER
             max_err = 0.0d0

@@ -64,7 +64,7 @@ PROGRAM MAIN
         potential(:,:,:) =0.0d0
         PRINT*, "SCF ITERATION:", iter
         CALL Poisson_epsilon_no_charge(potential, density, epsilon, alfa, nx, ny, nz, dx, dz, tol, MAX_ITER)
-        WRITE(filename, '(A,I0,A)') 'data/potential_', iter, '.dat'
+        WRITE(filename, '(A,I0,A)') 'data/potential_nocharge_', iter, '.dat'
         CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, filename)
         CALL WRITE_POTENTIAL_CROSS_SECTION(potential, nx, ny, nz, dx, 'data/potential_cross_section.dat')
         ! density_full = 0.0d0
@@ -80,15 +80,21 @@ PROGRAM MAIN
         DO i=1, Nx
             DO j=1, Ny
                 DO k=1, Nz
-                    potential(i,j,k)=-potential(i,j,k)+potential_z(k)
+                    potential(i,j,k)=-potential(i,j,k)-potential_z(k)
                 END DO
             END DO
         END DO
 
+        WRITE(filename, '(A,I0,A)') 'data/potential_plus_z_', iter, '.dat'
+        CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, filename)
+
         ! stage 4: poisson with epsilon NOT changing
         CALL Poisson(potential_eps0, density, eps_0, alfa, Nx, Ny, Nz, dx, tol, MAX_ITER)
         ! subtracting -> only the influence of the changing eps at STO interface
-        potential = potential - potential_eps0
+
+        WRITE(filename, '(A,I0,A)') 'data/potential_eps0', iter, '.dat'
+        CALL WRITE_POTENTIAL_2D_XY(potential_eps0, nx, ny, nz, dx, filename)
+        potential = potential + potential_eps0
         WRITE(filename, '(A,I0,A)') 'data/potential_final_', iter, '.dat'
         CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, filename)
 

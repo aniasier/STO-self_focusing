@@ -1,24 +1,24 @@
 &calculation_parameters
     Nx=100,
     Ny=100,
-    Nz=100,
+    Nz=1000,
     dx=0.1,
     dz=0.1,
     MAX_ITER=10000,
-    MAX_ITER_SCF=10000,
-    tol=1.0e-6,
+    MAX_ITER_SCF=1000,
+    tol=1.0e-8,
     tol_scf=1.0e-6,
     alfa=1.5,
     dt=1e-9,
-    MAX_TIME=10000
+    MAX_TIME=500
 &end
 
 &physical_parameters
     n0_trapped=5.0,
     L_trapped=10.0,
-    m1=0.2,
+    m1=2.0,
     m2=3.5,
     norbital=1,
-    sigma=1.0
+    sigma=5.0
 &end
 

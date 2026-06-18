@@ -97,7 +97,7 @@ PROGRAM MAIN
         ! print*, "Expected E =", (3.14159265d0**2/(2.0d0*m1) * &
         ! (2.0d0/((Nx-1)*dx)**2 + 1.0d0/((Nz-1)*dz)**2))/ feV2au
 
-        CALL IMAGINARY_TIME(potential, Nx, Ny, Nz, dx, dz, m1, m2, init_psi, final_psi, energy)
+        CALL IMAGINARY_TIME(potential, Nx, Ny, Nz, dx, dz, dt, MAX_TIME, m1, m2, init_psi, final_psi, energy)
         CALL GET_DENSITY(density, final_psi, nx, ny, nz)
         WRITE(filename, '(A,I0,A)') 'data/density3D_', iter, '.dat'
         CALL WRITE_DENSITY_2D_XY(density, Nx, Ny, Nz, dx, dz, filename)

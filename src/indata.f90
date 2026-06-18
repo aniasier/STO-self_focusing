@@ -13,6 +13,8 @@ MODULE INDATA
     REAL*8 :: tol
     REAL*8 :: tol_scf
     REAL*8 :: alfa ! relaxation parameter for poisson solver
+    REAL*8 :: dt
+    INTEGER*4 :: MAX_TIME
 
     ! physical parameters
     REAL*8 :: n0_trapped
@@ -32,7 +34,9 @@ MODULE INDATA
        &  MAX_ITER_SCF,                           &
        &  tol,                                    &
        &  tol_scf,                                &
-       &  alfa
+       &  alfa,                                   &
+       & dt,                                      &
+       & MAX_TIME
 
     NAMELIST /physical_parameters/               &
     &  n0_trapped,                               &
@@ -63,6 +67,8 @@ MODULE INDATA
         tol = 0.0
         tol_scf = 0.0
         alfa = 0.0
+        dt = 0.0
+        MAX_TIME =0
 
         n0_trapped = 0.0
         L_trapped = 0.0
@@ -74,6 +80,7 @@ MODULE INDATA
         READ (33, NML=calculation_parameters)
         dx = dx * fnm2au
         dz = dz * fnm2au
+        dt = dt * fns2au
 
         READ (33, NML=physical_parameters)
         n0_trapped = n0_trapped * 1.0e13*fne2D2au

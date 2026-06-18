@@ -8,7 +8,9 @@
     MAX_ITER_SCF=10000,
     tol=1.0e-6,
     tol_scf=1.0e-6,
-    alfa=1.5
+    alfa=1.5,
+    dt=1e-9,
+    MAX_TIME=10000
 &end
 
 &physical_parameters

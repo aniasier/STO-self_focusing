@@ -4,22 +4,20 @@ MODULE SCHRODINGER
     IMPLICIT NONE
     CONTAINS
 
-    SUBROUTINE IMAGINARY_TIME(potential, Nx, Ny, Nz, dx, dz, m1, m2, init_psi, final_psi, final_energy)
+    SUBROUTINE IMAGINARY_TIME(potential, Nx, Ny, Nz, dx, dz, dt, MAX_TIME, m1, m2, init_psi, final_psi, final_energy)
         IMPLICIT NONE
         REAL*8, INTENT(IN) :: potential(:,:,:)
         REAL*8, INTENT(IN) :: init_psi(:,:,:)
         REAL*8, INTENT(OUT) :: final_psi(Nx,Ny,Nz)
         REAL*8, INTENT(OUT) :: final_energy
-        REAL*8, INTENT(IN) :: dx, dz, m1, m2
-        INTEGER*4, INTENT(IN) :: Nx, Ny, Nz
+        REAL*8, INTENT(IN) :: dx, dz, m1, m2, dt
+        INTEGER*4, INTENT(IN) :: Nx, Ny, Nz, MAX_TIME
         REAL*8, ALLOCATABLE :: psi(:,:,:)
         REAL*8, ALLOCATABLE :: psi_new(:,:,:)
         REAL*8, ALLOCATABLE :: ham(:,:,:)
-        INTEGER*4 :: i,j,k, iter, MAX_TIME
-        REAL*8 :: energy, energy_old, tol, norm, dt
+        INTEGER*4 :: i,j,k, iter
+        REAL*8 :: energy, energy_old, tol, norm
 
-        MAX_TIME = 10000
-        dt = 0.000000001*fns2au
         energy = 0.0d0
 
         print*, "dt (au) =", dt

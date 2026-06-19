@@ -71,10 +71,10 @@ MODULE WRITERS
         
     END SUBROUTINE WRITE_DENSITY_2D_XY
 
-    SUBROUTINE WRITE_POTENTIAL_2D_XY(potential, Nx, Ny, Nz, dx, filename)
+    SUBROUTINE WRITE_POTENTIAL_2D_XY(potential, Nx, Ny, Nz, dx,dz, filename)
         IMPLICIT NONE
         INTEGER*4, INTENT(IN) :: Nx, Ny, Nz
-        REAL*8, INTENT(IN) :: potential(Nx, Ny, Nz), dx
+        REAL*8, INTENT(IN) :: potential(Nx, Ny, Nz), dx, dz
         CHARACTER(LEN=*), INTENT(IN) :: filename
         INTEGER*4 :: i, j, k, unit
         REAL*8 :: x, y, val
@@ -92,7 +92,7 @@ MODULE WRITERS
                 val = 0.0d0
                 ! Integrate over z dimension
                 DO k = 1, Nz
-                    val = val - potential(i,j,k) * dx
+                    val = val + potential(i,j,k) * dz
                 END DO
                 x = (i-1) * dx / fnm2au
                 y = (j-1) * dx / fnm2au

@@ -23,7 +23,7 @@ PROGRAM MAIN
     REAL*8 :: x0, y0, z0 ! gauss centering
     INTEGER*4 :: i, j, k, iz, iter
     REAL*8 :: z
-    REAL*8 :: energy, energy_old
+    REAL*8 :: energy, energy_old, eps_local
     CHARACTER(LEN=50) :: filename
 
     eps_0=100 ! <- do wzoru na permittivity wyraz wolny
@@ -47,7 +47,7 @@ PROGRAM MAIN
 
     x0 = (nx-1)*dx/2.0d0
     y0 = (ny-1)*dx/2.0d0
-    z0 = (nz-1)*dz/2.0d0
+    z0 = (10)*dz
     ! stage 1: z direction
     CALL POISSON_ZDIRECTION_INIT(n0_trapped, L_trapped, eps_0, nz, dz, charge_trapped, electric_field, potential_z)
     ! CALL POISSON_ZDIRECTION(electric_field_new, electric_field, charge_trapped, eps_0,  nz, dz)
@@ -65,7 +65,7 @@ PROGRAM MAIN
         PRINT*, "SCF ITERATION:", iter
         CALL Poisson_epsilon_no_charge(potential, density, epsilon, alfa, nx, ny, nz, dx, dz, tol, MAX_ITER)
         WRITE(filename, '(A,I0,A)') 'data/potential_nocharge_', iter, '.dat'
-        CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, filename)
+        CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, dz, filename)
         CALL WRITE_POTENTIAL_CROSS_SECTION(potential, nx, ny, nz, dx, 'data/potential_cross_section.dat')
         ! density_full = 0.0d0
         ! DO i=1, Nx
@@ -80,23 +80,27 @@ PROGRAM MAIN
         DO i=1, Nx
             DO j=1, Ny
                 DO k=1, Nz
-                    potential(i,j,k)=-potential(i,j,k)-potential_z(k)
+                    potential(i,j,k)=potential(i,j,k)-potential_z(k)
                 END DO
             END DO
         END DO
 
         WRITE(filename, '(A,I0,A)') 'data/potential_plus_z_', iter, '.dat'
-        CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, filename)
-
+        CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, dz, filename)
+        eps_local = epsilon(ceiling((nx-1)/2.0d0), ceiling((ny-1)/2.0d0), 10)  
         ! stage 4: poisson with epsilon NOT changing
-        CALL Poisson(potential_eps0, density, eps_0, alfa, Nx, Ny, Nz, dx, tol, MAX_ITER)
+        CALL Poisson(potential_eps0, density, eps_local, alfa, Nx, Ny, Nz, dx, tol, MAX_ITER)
         ! subtracting -> only the influence of the changing eps at STO interface
 
         WRITE(filename, '(A,I0,A)') 'data/potential_eps0', iter, '.dat'
-        CALL WRITE_POTENTIAL_2D_XY(potential_eps0, nx, ny, nz, dx, filename)
-        potential = potential + potential_eps0
+        CALL WRITE_POTENTIAL_2D_XY(potential_eps0, nx, ny, nz, dx, dz, filename)
+        PRINT*, 'potential (max): ', maxval(potential)
+        PRINT*, 'potential (min): ', minval(potential)
+        PRINT*, 'potential eps0 (max): ', maxval(potential_eps0)
+        PRINT*, 'potential eps0 (min): ', minval(potential_eps0)
+        potential = potential - potential_eps0
         WRITE(filename, '(A,I0,A)') 'data/potential_final_', iter, '.dat'
-        CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, filename)
+        CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, dz, filename)
 
         ! state 5: imaginary time method for schrodinger equation
         ! potential = 0.0d0

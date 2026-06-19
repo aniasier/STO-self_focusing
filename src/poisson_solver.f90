@@ -326,31 +326,32 @@ CONTAINS
             end do
             
             ! ---------2. Neumann BC at x and y boundaries (zero normal derivative) ---------
+            ! update: Dirichlet boundary conditions
             i=1
             do k = 2, Nz - 1
             do j = 1, Ny 
-                potential(i,j,k) = potential(i+1,j,k)
+                potential(i,j,k) = 0.0!potential(i+1,j,k)
             enddo
             enddo
 
             i=Nx
             do k = 2, Nz - 1
             do j = 1, Ny 
-                potential(i,j,k) = potential(i-1,j,k)
+                potential(i,j,k) = 0.0 !potential(i-1,j,k)
             enddo
             enddo
 
             j=1
             do k = 2, Nz - 1
             do i = 1, Nx
-                potential(i,j,k) = potential(i,j+1,k)
+                potential(i,j,k) = 0.0! potential(i,j+1,k)
             enddo
             enddo
 
             j=Ny
             do k = 2, Nz - 1
             do i = 1, Nx
-                potential(i,j,k) = potential(i,j-1,k)
+                potential(i,j,k) = 0.0 !potential(i,j-1,k)
             enddo
             enddo
 

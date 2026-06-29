@@ -96,7 +96,7 @@ MODULE WRITERS
                 END DO
                 x = (i-1) * dx / fnm2au
                 y = (j-1) * dx / fnm2au
-                WRITE(unit, '(200e20.12)') x, y, val / feV2au
+                WRITE(unit, '(3ES30.16E3)') x, y, val / feV2au
             END DO
             WRITE(unit, '(200e20.12)')
         END DO

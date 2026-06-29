@@ -459,7 +459,7 @@ CONTAINS
             end if
             
             if (iter == MAX_ITER) then
-                print *, "Warning: Poisson solver reached MAX_ITER without convergence."
+                print *, "Warning: Poisson solver reached MAX_ITER without convergence. (max error)", max_err
             end if
         end do
 

@@ -20,9 +20,9 @@ MODULE SCHRODINGER
 
         energy = 0.0d0
 
-        print*, "dt (au) =", dt
-        print*, "dx (au) =", dx
-        print*, "stability limit =", 1.0d0/(2.0d0*(3.0d0/(m1*dx**2)))
+        ! print*, "dt (au) =", dt
+        ! print*, "dx (au) =", dx
+        ! print*, "stability limit =", 1.0d0/(2.0d0*(3.0d0/(m1*dx**2)))
         if (dt > 1.0d0/(2.0d0*(3.0d0/(m1*dx**2)))) then
             print*, "WARNING: dt too large, will blow up"
             stop
@@ -97,6 +97,7 @@ MODULE SCHRODINGER
             energy = energy*dx*dx*dz
             if (abs(energy-energy_old) < tol) then
                 print*, "Converged after", iter, "iterations"
+                print*, "Energy (eV): ", energy/feV2au
                 final_psi = psi_new
                 final_energy = energy
                 exit
@@ -104,7 +105,7 @@ MODULE SCHRODINGER
 
             energy_old = energy
             psi = psi_new
-            PRINT*, "Iteration:", iter, "Energy:", energy/feV2au
+            ! PRINT*, "Iteration:", iter, "Energy:", energy/feV2au
         END DO
         final_psi = psi
         final_energy = energy

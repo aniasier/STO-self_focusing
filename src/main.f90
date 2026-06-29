@@ -62,7 +62,7 @@ PROGRAM MAIN
     ! charge_trapped3D(:,:,:) = 0.0d0
     DO iter = 1, MAX_ITER_SCF
         potential(:,:,:) =0.0d0
-        PRINT*, "SCF ITERATION:", iter
+        ! PRINT*, "SCF ITERATION:", iter
         CALL Poisson_epsilon_no_charge(potential, density, epsilon, alfa, nx, ny, nz, dx, dz, tol, MAX_ITER)
         WRITE(filename, '(A,I0,A)') 'data/potential_nocharge_', iter, '.dat'
         CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, dz, filename)
@@ -94,10 +94,10 @@ PROGRAM MAIN
 
         WRITE(filename, '(A,I0,A)') 'data/potential_eps0', iter, '.dat'
         CALL WRITE_POTENTIAL_2D_XY(potential_eps0, nx, ny, nz, dx, dz, filename)
-        PRINT*, 'potential (max): ', maxval(potential)
-        PRINT*, 'potential (min): ', minval(potential)
-        PRINT*, 'potential eps0 (max): ', maxval(potential_eps0)
-        PRINT*, 'potential eps0 (min): ', minval(potential_eps0)
+        ! PRINT*, 'potential (max): ', maxval(potential)
+        ! PRINT*, 'potential (min): ', minval(potential)
+        ! PRINT*, 'potential eps0 (max): ', maxval(potential_eps0)
+        ! PRINT*, 'potential eps0 (min): ', minval(potential_eps0)
         potential = potential - potential_eps0
         WRITE(filename, '(A,I0,A)') 'data/potential_final_', iter, '.dat'
         CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, dz, filename)

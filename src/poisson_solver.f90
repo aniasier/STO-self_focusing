@@ -306,8 +306,8 @@ CONTAINS
         INTEGER           :: i, j, k, iter
         REAL*8            :: e_ip, e_im, e_jp, e_jm, e_kp, e_km
         REAL*8            :: sum_e, res, old_val, max_err, source, val
-        print*, maxval(density)
-        print*, 1/(2*pi*(5.0*fnm2au)**2)**(1.5)
+        ! print*, maxval(density)
+        ! print*, 1/(2*pi*(5.0*fnm2au)**2)**(1.5)
 
         do iter = 1, MAX_ITER
             max_err = 0.0d0
@@ -393,7 +393,7 @@ CONTAINS
 
             !BC at z=0
 
-            print *, iter, max_err
+            ! print *, iter, max_err
             if (max_err < TOL) exit
         end do
         print *, "Converged in ", iter, " iterations. Final error: ", max_err
@@ -415,9 +415,9 @@ CONTAINS
         ! Internal Solver Parameters
         INTEGER           :: i, j, k, iter
         REAL*8            :: source, res, old_val, max_err, coef_xy, coef_z, denom
-        print *, "Entered Poisson"
-        print *, shape(potential)
-        print *, shape(density)
+        ! print *, "Entered Poisson"
+        ! print *, shape(potential)
+        ! print *, shape(density)
 
         ! Iterative Loop
         do iter = 1, MAX_ITER
@@ -451,7 +451,7 @@ CONTAINS
                 end do
             end do
 
-            print *, "Poisson at iteration: iter, max_err ", iter, max_err
+            ! print *, "Poisson at iteration: iter, max_err ", iter, max_err
             ! Convergence Check
             if (max_err < tol) then
                 print *, "Poisson converged at iteration: ", iter, max_err

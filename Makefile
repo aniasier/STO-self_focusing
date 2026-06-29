@@ -1,6 +1,6 @@
 # --- Variables ---
 FC = gfortran
-TARGET = STO.exe
+TARGET = STO.x
 
 SRC_DIR = src
 OBJ_DIR = obj
@@ -84,6 +84,9 @@ DEBUG_FLAGS = -O0 -g -cpp -DDEBUG \
 debug:
 	$(MAKE) clean
 	$(MAKE) FFLAGS="$(DEBUG_FLAGS)"
+
+run_slurm:
+	cd Runner && python3 runnerMain.py && cd ..
 clean:
 	rm -rf $(OBJ_DIR) $(MOD_DIR) $(TARGET)
 

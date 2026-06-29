@@ -89,7 +89,7 @@ PROGRAM MAIN
         CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, dz, filename)
         eps_local = epsilon(ceiling((nx-1)/2.0d0), ceiling((ny-1)/2.0d0), 10)  
         ! stage 4: poisson with epsilon NOT changing
-        CALL Poisson(potential_eps0, density, eps_local, alfa, Nx, Ny, Nz, dx, tol, MAX_ITER)
+        CALL Poisson(potential_eps0, density, eps_local, alfa, Nx, Ny, Nz, dx, dz, tol, MAX_ITER)
         ! subtracting -> only the influence of the changing eps at STO interface
 
         WRITE(filename, '(A,I0,A)') 'data/potential_eps0', iter, '.dat'

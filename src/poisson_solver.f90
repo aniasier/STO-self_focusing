@@ -363,17 +363,18 @@ CONTAINS
                         old_val = potential(i,j,k)
                         
                         ! 1. Calculate epsilon at mid-points (half-steps)
-                        e_ip = (epsilon(i+1,j,k) + epsilon(i,j,k)) / 2.0d0
-                        e_im = (epsilon(i-1,j,k) + epsilon(i,j,k)) / 2.0d0
-                        e_jp = (epsilon(i,j+1,k) + epsilon(i,j,k)) / 2.0d0
-                        e_jm = (epsilon(i,j-1,k) + epsilon(i,j,k)) / 2.0d0
-                        e_kp = (epsilon(i,j,k+1) + epsilon(i,j,k)) / 2.0d0
-                        e_km = (epsilon(i,j,k-1) + epsilon(i,j,k)) / 2.0d0
+                        e_ip = ((epsilon(i+1,j,k) + epsilon(i,j,k)) / 2.0d0) /dx**2
+                        e_im = ((epsilon(i-1,j,k) + epsilon(i,j,k)) / 2.0d0) /dx**2
+                        e_jp = ((epsilon(i,j+1,k) + epsilon(i,j,k)) / 2.0d0) /dx**2
+                        e_jm = ((epsilon(i,j-1,k) + epsilon(i,j,k)) / 2.0d0) /dx**2
+                        e_kp = ((epsilon(i,j,k+1) + epsilon(i,j,k)) / 2.0d0) /dz**2
+                        e_km = ((epsilon(i,j,k-1) + epsilon(i,j,k)) / 2.0d0) /dz**2
                         
+
                         sum_e = e_ip + e_im + e_jp + e_jm + e_kp + e_km
                         
                         ! 2. The source term (Right Hand Side)
-                        source = -(density(i,j,k)) / epsilon0 * dx * dx
+                        source = -(density(i,j,k)) / epsilon0
                         
                         ! 3. Calculate Gauss-Seidel result
                         ! This is now a weighted average of neighbors
@@ -401,7 +402,7 @@ CONTAINS
 
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! normal Gauss-Seidl method !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    SUBROUTINE Poisson(potential, density, epsilon, alfa, Nx, Ny, Nz, dx, tol, MAX_ITER)
+    SUBROUTINE Poisson(potential, density, epsilon, alfa, Nx, Ny, Nz, dx, dz, tol, MAX_ITER)
         IMPLICIT NONE
         
         ! Arguments
@@ -409,11 +410,11 @@ CONTAINS
         REAL*8,  INTENT(INOUT)        :: potential(:,:,:)
         REAL*8,  INTENT(IN)           :: density(:,:,:)
         REAL*8,  INTENT(IN)           :: alfa, epsilon
-        REAL*8,  INTENT(IN)           :: dx, tol
+        REAL*8,  INTENT(IN)           :: dx, tol, dz
         
         ! Internal Solver Parameters
         INTEGER           :: i, j, k, iter
-        REAL*8            :: source, res, old_val, max_err
+        REAL*8            :: source, res, old_val, max_err, coef_xy, coef_z, denom
         print *, "Entered Poisson"
         print *, shape(potential)
         print *, shape(density)
@@ -429,15 +430,17 @@ CONTAINS
                 do j = 2, Ny - 1
                     do i = 2, Nx - 1
                         
-                        source = density(i,j,k)/epsilon0/epsilon
-                        old_val = potential(i,j,k)
-                        
-                        ! 2. Calculate the updated value based on neighbors
-                        ! Standard 7-point finite difference stencil
-                        res = (potential(i+1,j,k) + potential(i-1,j,k) + &
-                            potential(i,j+1,k) + potential(i,j-1,k) + &
-                            potential(i,j,k+1) + potential(i,j,k-1) - &
-                            source * dx * dx) / 6.0d0
+                        source = density(i,j,k)/(epsilon0*epsilon)
+
+                        coef_xy = 1.0d0/(dx*dx)
+                        coef_z  = 1.0d0/(dz*dz)
+
+                        denom = 4.0d0*coef_xy + 2.0d0*coef_z
+
+                        res = (coef_xy*(potential(i+1,j,k)+potential(i-1,j,k) + &
+                                    potential(i,j+1,k)+potential(i,j-1,k)) &
+                            + coef_z *(potential(i,j,k+1)+potential(i,j,k-1)) &
+                            + source) / denom
                         
                         ! 3. Apply mixing (Successive Over-Relaxation)
                         potential(i,j,k) = (1.0d0 - alfa) * old_val + alfa * res

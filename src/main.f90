@@ -28,7 +28,7 @@ PROGRAM MAIN
 
     eps_0=100 ! <- do wzoru na permittivity wyraz wolny
     ! thickness=12.0*fnm2au
-    CALL GET_INDATA("input.nml")
+    CALL GET_INDATA("./data/input.nml")
 
     ALLOCATE(charge_trapped(nz))
     ALLOCATE(electric_field(nz))
@@ -56,7 +56,7 @@ PROGRAM MAIN
     CALL GET_CHARGE_TRAPPED3D(charge_trapped3D, charge_trapped, nx, ny, nz)
     CALL GET_INIT_PSI(init_psi, Nx, Ny, Nz, x0, y0, z0, sigma, dx, dz)
     CALL GET_DENSITY(density, init_psi, nx, ny, nz)
-    CALL WRITE_DENSITY_2D_XY(density, nx, ny, nz, dx,dz, 'data/density.dat')
+    CALL WRITE_DENSITY_2D_XY(density, nx, ny, nz, dx,dz, './data/density.dat')
     ! stage 3: poisson in 3d with changing dielectric function
     energy_old = 1.d99
     ! charge_trapped3D(:,:,:) = 0.0d0
@@ -64,9 +64,9 @@ PROGRAM MAIN
         potential(:,:,:) =0.0d0
         ! PRINT*, "SCF ITERATION:", iter
         CALL Poisson_epsilon_no_charge(potential, density, epsilon, alfa, nx, ny, nz, dx, dz, tol, MAX_ITER)
-        WRITE(filename, '(A,I0,A)') 'data/potential_nocharge_', iter, '.dat'
+        WRITE(filename, '(A,I0,A)') './data/potential_nocharge_', iter, '.dat'
         CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, dz, filename)
-        CALL WRITE_POTENTIAL_CROSS_SECTION(potential, nx, ny, nz, dx, 'data/potential_cross_section.dat')
+        CALL WRITE_POTENTIAL_CROSS_SECTION(potential, nx, ny, nz, dx, './data/potential_cross_section.dat')
         ! density_full = 0.0d0
         ! DO i=1, Nx
         !     DO j=1, Ny
@@ -85,21 +85,21 @@ PROGRAM MAIN
             END DO
         END DO
 
-        WRITE(filename, '(A,I0,A)') 'data/potential_plus_z_', iter, '.dat'
+        WRITE(filename, '(A,I0,A)') './data/potential_plus_z_', iter, '.dat'
         CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, dz, filename)
         eps_local = epsilon(ceiling((nx-1)/2.0d0), ceiling((ny-1)/2.0d0), 10)  
         ! stage 4: poisson with epsilon NOT changing
         CALL Poisson(potential_eps0, density, eps_local, alfa, Nx, Ny, Nz, dx, dz, tol, MAX_ITER)
         ! subtracting -> only the influence of the changing eps at STO interface
 
-        WRITE(filename, '(A,I0,A)') 'data/potential_eps0', iter, '.dat'
+        WRITE(filename, '(A,I0,A)') './data/potential_eps0', iter, '.dat'
         CALL WRITE_POTENTIAL_2D_XY(potential_eps0, nx, ny, nz, dx, dz, filename)
         ! PRINT*, 'potential (max): ', maxval(potential)
         ! PRINT*, 'potential (min): ', minval(potential)
         ! PRINT*, 'potential eps0 (max): ', maxval(potential_eps0)
         ! PRINT*, 'potential eps0 (min): ', minval(potential_eps0)
         potential = potential - potential_eps0
-        WRITE(filename, '(A,I0,A)') 'data/potential_final_', iter, '.dat'
+        WRITE(filename, '(A,I0,A)') './data/potential_final_', iter, '.dat'
         CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, dz, filename)
 
         ! state 5: imaginary time method for schrodinger equation
@@ -109,7 +109,7 @@ PROGRAM MAIN
 
         CALL IMAGINARY_TIME(potential, Nx, Ny, Nz, dx, dz, dt, MAX_TIME, m1, m2, init_psi, final_psi, energy)
         CALL GET_DENSITY(density, final_psi, nx, ny, nz)
-        WRITE(filename, '(A,I0,A)') 'data/density3D_', iter, '.dat'
+        WRITE(filename, '(A,I0,A)') './data/density3D_', iter, '.dat'
         CALL WRITE_DENSITY_2D_XY(density, Nx, Ny, Nz, dx, dz, filename)
 
         if (abs(energy-energy_old) < tol_scf) then

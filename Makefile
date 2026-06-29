@@ -86,7 +86,7 @@ debug:
 	$(MAKE) FFLAGS="$(DEBUG_FLAGS)"
 
 run_slurm:
-	cd Runner && python3 runnerMain.py && cd ..
+	cd runner && python3 runnerMain.py && cd ..
 clean:
 	rm -rf $(OBJ_DIR) $(MOD_DIR) $(TARGET)
 

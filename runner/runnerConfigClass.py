@@ -76,9 +76,9 @@ class RunnerConfig:
         parser = f90nml.Parser()
         params_nml = parser.reads(
             f"&calculation_parameters \
-                Nx=100, \
-                Ny=100, \
-                Nz=1000, \
+                Nx=50, \
+                Ny=50, \
+                Nz=50, \
                 dx=0.1, \
                 dz=1, \
                 MAX_ITER=10000, \

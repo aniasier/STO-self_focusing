@@ -611,28 +611,28 @@ CONTAINS
         electric_field(nz)=electric_field(nz-1)
 
         !!!!!!!!!!!!! zapis do pliku !!!!!!!!!!!!!!!!!!
-        OPEN(1, FILE="data/charge_trapped.dat")
+        OPEN(1, FILE="./data/charge_trapped.dat")
         do iz=1,nz
             z=(iz-1)*dz
             write(1, '(200e20.12)') z/fnm2au, charge_trapped(iz)/fne2au   
         enddo
         CLOSE(1)
 
-        OPEN(1, FILE="data/potential_trapped.dat")
+        OPEN(1, FILE="./data/potential_trapped.dat")
         do iz=1,nz
         z=(iz-1)*dz
         write(1, '(200e20.12)') z/fnm2au, -pot_hartree(iz)/feV2au 
         enddo
         CLOSE(1)
 
-        OPEN(1, FILE="data/electric_field_trapped.dat")
+        OPEN(1, FILE="./data/electric_field_trapped.dat")
         do iz=1,nz
         z=(iz-1)*dz
         write(1, '(200e20.12)') z/fnm2au, electric_field(iz)*fnm2au/feV2au 
         enddo
         CLOSE(1)
 
-        OPEN(1, FILE="data/epsilon_trapped.dat")
+        OPEN(1, FILE="./data/epsilon_trapped.dat")
         do iz=1,nz
             z=(iz-1)*dz
             write(1, '(200e20.12)') z/fnm2au, permitivity(eps_0,electric_field(iz))

@@ -30,7 +30,7 @@ class Runner(RunnerConfig):
         with open("job.sh", "w") as jobFile:
             print(self.jobHeader[machine], file=jobFile)
             print("cd " + newRunPath, file=jobFile)
-            print(os.path.join(runnerCwd, "..", "bin", "STO.x"), file=jobFile)
+            print(os.path.join(runnerCwd, "..", "STO.x"), file=jobFile)
 
         # queue slurm job
         simulate = subprocess.run(["sbatch", "job.sh"])
@@ -48,7 +48,7 @@ class Runner(RunnerConfig):
 
         path = pathToAppend
 
-        outputDir = f"OutputData"
+        outputDir = f"data"
         if not os.path.exists(path):
             os.mkdir(path)
             os.mkdir(os.path.join(path, outputDir))
@@ -62,7 +62,7 @@ class Runner(RunnerConfig):
         for pair in paramValuePairs:
             nml[pair[0]][pair[1]] = pair[2]  # editing all key-value pairs
 
-        with open(os.path.join("OutputData", "input.nml"), "w") as nmlFile:
+        with open(os.path.join("data", "input.nml"), "w") as nmlFile:
             f90nml.write(nml, nmlFile, sort=False)
 
 

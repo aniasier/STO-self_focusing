@@ -76,13 +76,13 @@ class RunnerConfig:
         parser = f90nml.Parser()
         params_nml = parser.reads(
             f"&calculation_parameters \
-                Nx=50, \
-                Ny=50, \
-                Nz=50, \
-                dx=0.1, \
-                dz=1, \
+                Nx=100, \
+                Ny=100, \
+                Nz=1000, \
+                dx=1.0, \
+                dz=0.07, \
                 MAX_ITER=10000, \
-                MAX_ITER_SCF=1000, \
+                MAX_ITER_SCF=40, \
                 tol=1.0e-8, \
                 tol_scf=1.0e-6, \
                 alfa=0.5, \

@@ -57,6 +57,7 @@ PROGRAM MAIN
     CALL GET_INIT_PSI(init_psi, Nx, Ny, Nz, x0, y0, z0, sigma, dx, dz)
     CALL GET_DENSITY(density, init_psi, nx, ny, nz)
     CALL WRITE_DENSITY_2D_XY(density, nx, ny, nz, dx,dz, './data/density.dat')
+    CALL WRITE_POTENTIAL_CROSS_SECTION(density, Nx, Ny, Nz, dz, './data/density_init_crossection.dat')
     ! stage 3: poisson in 3d with changing dielectric function
     energy_old = 1.d99
     ! charge_trapped3D(:,:,:) = 0.0d0
@@ -101,6 +102,8 @@ PROGRAM MAIN
         potential = potential - potential_eps0
         WRITE(filename, '(A,I0,A)') './data/potential_final_', iter, '.dat'
         CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, dz, filename)
+        WRITE(filename, '(A,I0,A)') './data/potential_final_crossection_', iter, '.dat'
+        CALL WRITE_POTENTIAL_CROSS_SECTION(potential, Nx, Ny, Nz, dz, filename)
 
         ! state 5: imaginary time method for schrodinger equation
         ! potential = 0.0d0
@@ -111,6 +114,8 @@ PROGRAM MAIN
         CALL GET_DENSITY(density, final_psi, nx, ny, nz)
         WRITE(filename, '(A,I0,A)') './data/density3D_', iter, '.dat'
         CALL WRITE_DENSITY_2D_XY(density, Nx, Ny, Nz, dx, dz, filename)
+        WRITE(filename, '(A,I0,A)') './data/density_final_crossection_', iter, '.dat'
+        CALL WRITE_POTENTIAL_CROSS_SECTION(density, Nx, Ny, Nz, dz, filename)
 
         if (abs(energy-energy_old) < tol_scf) then
                 print*, "Converged after", iter, "iterations"

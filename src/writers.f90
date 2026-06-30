@@ -105,10 +105,10 @@ MODULE WRITERS
         
     END SUBROUTINE WRITE_POTENTIAL_2D_XY
 
-    SUBROUTINE WRITE_POTENTIAL_CROSS_SECTION(potential, Nx, Ny, Nz, dx, filename)
+    SUBROUTINE WRITE_POTENTIAL_CROSS_SECTION(potential, Nx, Ny, Nz, dz, filename)
         IMPLICIT NONE
         INTEGER*4, INTENT(IN) :: Nx, Ny, Nz
-        REAL*8, INTENT(IN) :: potential(Nx, Ny, Nz), dx
+        REAL*8, INTENT(IN) :: potential(Nx, Ny, Nz), dz
         CHARACTER(LEN=*), INTENT(IN) :: filename
         INTEGER*4 :: i, j, k, unit
         REAL*8 :: z
@@ -124,7 +124,7 @@ MODULE WRITERS
         i = Nx / 2
         j = Ny / 2
         DO k = 1, Nz
-            z = (k-1) * dx / fnm2au
+            z = (k-1) * dz / fnm2au
             WRITE(unit, '(200e20.12)') z, -potential(i,j,k) / feV2au
         END DO
         

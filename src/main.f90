@@ -21,7 +21,7 @@ PROGRAM MAIN
     REAL*8, ALLOCATABLE :: init_psi(:,:,:)
     REAL*8, ALLOCATABLE :: final_psi(:,:,:)
     REAL*8 :: x0, y0, z0 ! gauss centering
-    INTEGER*4 :: i, j, k, iz, iter
+    INTEGER*4 :: i, j, k, iz, iter, z0_indx
     REAL*8 :: z
     REAL*8 :: energy, energy_old, eps_local
     CHARACTER(LEN=50) :: filename
@@ -44,10 +44,10 @@ PROGRAM MAIN
     ALLOCATE(final_psi(nx, ny, nz))
     
     potential_eps0(:,:,:) =0.0d0
-
+    z0_indx = 10
     x0 = (nx-1)*dx/2.0d0
     y0 = (ny-1)*dx/2.0d0
-    z0 = (10)*dz
+    z0 = (z0_indx)*dz
     ! stage 1: z direction
     CALL POISSON_ZDIRECTION_INIT(n0_trapped, L_trapped, eps_0, nz, dz, charge_trapped, electric_field, potential_z)
     ! CALL POISSON_ZDIRECTION(electric_field_new, electric_field, charge_trapped, eps_0,  nz, dz)
@@ -102,8 +102,18 @@ PROGRAM MAIN
         potential = potential - potential_eps0
         WRITE(filename, '(A,I0,A)') './data/potential_final_', iter, '.dat'
         CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, dz, filename)
+
+        WRITE(filename, '(A,I0,A)') './data/potential_final_slice_', iter, '.dat'
+        CALL WRITE_POTENTIAL_2D_XY_SLICE(potential, nx, ny, nz, dx, dz, z0_indx, filename)
+
         WRITE(filename, '(A,I0,A)') './data/potential_final_crossection_', iter, '.dat'
         CALL WRITE_POTENTIAL_CROSS_SECTION(potential, Nx, Ny, Nz, dz, filename)
+
+        WRITE(filename, '(A,I0,A)') './data/potential_final_crossection_x_', iter, '.dat'
+        CALL WRITE_POTENTIAL_CROSS_SECTION_X(potential, Nx, Ny, Nz, dx, z0_indx, filename)
+
+        WRITE(filename, '(A,I0,A)') './data/potential_final_crossection_y_', iter, '.dat'
+        CALL WRITE_POTENTIAL_CROSS_SECTION_Y(potential, Nx, Ny, Nz, dx, z0_indx, filename)
 
         ! state 5: imaginary time method for schrodinger equation
         ! potential = 0.0d0
@@ -114,8 +124,18 @@ PROGRAM MAIN
         CALL GET_DENSITY(density, final_psi, nx, ny, nz)
         WRITE(filename, '(A,I0,A)') './data/density3D_', iter, '.dat'
         CALL WRITE_DENSITY_2D_XY(density, Nx, Ny, Nz, dx, dz, filename)
+
+        WRITE(filename, '(A,I0,A)') './data/density_final_slice_', iter, '.dat'
+        CALL WRITE_POTENTIAL_2D_XY_SLICE(density, nx, ny, nz, dx, dz, z0_indx, filename)
+
         WRITE(filename, '(A,I0,A)') './data/density_final_crossection_', iter, '.dat'
         CALL WRITE_POTENTIAL_CROSS_SECTION(density, Nx, Ny, Nz, dz, filename)
+
+        WRITE(filename, '(A,I0,A)') './data/density_final_crossection_x_', iter, '.dat'
+        CALL WRITE_POTENTIAL_CROSS_SECTION_X(density, Nx, Ny, Nz, dx, z0_indx, filename)
+
+        WRITE(filename, '(A,I0,A)') './data/density_final_crossection_y_', iter, '.dat'
+        CALL WRITE_POTENTIAL_CROSS_SECTION_Y(density, Nx, Ny, Nz, dx, z0_indx, filename)
 
         if (abs(energy-energy_old) < tol_scf) then
                 print*, "Converged after", iter, "iterations"

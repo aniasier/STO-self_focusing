@@ -105,6 +105,38 @@ MODULE WRITERS
         
     END SUBROUTINE WRITE_POTENTIAL_2D_XY
 
+    SUBROUTINE WRITE_POTENTIAL_2D_XY_SLICE(potential, Nx, Ny, Nz, dx, dz, z0_indx, filename)
+        IMPLICIT NONE
+        INTEGER*4, INTENT(IN) :: Nx, Ny, Nz, z0_indx
+        REAL*8, INTENT(IN) :: potential(Nx, Ny, Nz), dx, dz
+        CHARACTER(LEN=*), INTENT(IN) :: filename
+        INTEGER*4 :: i, j, k, unit
+        REAL*8 :: x, y, val
+        
+        ! Open file for writing
+        OPEN(NEWUNIT=unit, FILE=TRIM(filename), STATUS='REPLACE', ACTION='WRITE')
+        
+        ! Write header comment for clarity
+        WRITE(unit, '(A)') '# 2D Potential Projection onto X-Y plane'
+        WRITE(unit, '(A)') '# x y potenital at z0'
+        
+        ! Write 2D projection (integrate over z)
+        DO i = 1, Nx
+            DO j = 1, Ny
+                val = 0.0d0
+                ! Integrate over z dimension
+                val = val + potential(i,j,z0_indx)
+                x = (i-1) * dx / fnm2au
+                y = (j-1) * dx / fnm2au
+                WRITE(unit, '(3ES30.16E3)') x, y, val / feV2au
+            END DO
+            WRITE(unit, '(200e20.12)')
+        END DO
+        
+        CLOSE(unit)
+        
+    END SUBROUTINE WRITE_POTENTIAL_2D_XY_SLICE
+
     SUBROUTINE WRITE_POTENTIAL_CROSS_SECTION(potential, Nx, Ny, Nz, dz, filename)
         IMPLICIT NONE
         INTEGER*4, INTENT(IN) :: Nx, Ny, Nz
@@ -131,5 +163,60 @@ MODULE WRITERS
         CLOSE(unit)
         
     END SUBROUTINE WRITE_POTENTIAL_CROSS_SECTION
+
+    SUBROUTINE WRITE_POTENTIAL_CROSS_SECTION_X(potential, Nx, Ny, Nz, dx, z0_indx, filename)
+        IMPLICIT NONE
+        INTEGER*4, INTENT(IN) :: Nx, Ny, Nz, z0_indx
+        REAL*8, INTENT(IN) :: potential(Nx, Ny, Nz), dx
+        CHARACTER(LEN=*), INTENT(IN) :: filename
+        INTEGER*4 :: i, j, k, unit
+        REAL*8 :: x
+        
+        ! Open file for writing
+        OPEN(NEWUNIT=unit, FILE=TRIM(filename), STATUS='REPLACE', ACTION='WRITE')
+        
+        ! Write header comment for clarity
+        WRITE(unit, '(A)') '# Potential Cross-Section at center (i=Nx/2, j=Ny/2)'
+        WRITE(unit, '(A)') '# z potential'
+        
+        ! Write cross-section at center
+        k = z0_indx
+        j = Ny / 2
+        DO i = 1, Nx
+            x = (i-1) * dx / fnm2au
+            WRITE(unit, '(200e20.12)') x, potential(i,j,k) / feV2au
+        END DO
+        
+        CLOSE(unit)
+        
+    END SUBROUTINE WRITE_POTENTIAL_CROSS_SECTION_X
+
+    SUBROUTINE WRITE_POTENTIAL_CROSS_SECTION_Y(potential, Nx, Ny, Nz, dx, z0_indx, filename)
+        IMPLICIT NONE
+        INTEGER*4, INTENT(IN) :: Nx, Ny, Nz, z0_indx
+        REAL*8, INTENT(IN) :: potential(Nx, Ny, Nz), dx
+        CHARACTER(LEN=*), INTENT(IN) :: filename
+        INTEGER*4 :: i, j, k, unit
+        REAL*8 :: y
+        
+        ! Open file for writing
+        OPEN(NEWUNIT=unit, FILE=TRIM(filename), STATUS='REPLACE', ACTION='WRITE')
+        
+        ! Write header comment for clarity
+        WRITE(unit, '(A)') '# Potential Cross-Section at center (i=Nx/2, j=Ny/2)'
+        WRITE(unit, '(A)') '# z potential'
+        
+        ! Write cross-section at center
+        i = Nx / 2
+        k = z0_indx
+        DO j = 1, Ny
+            y = (j-1) * dx / fnm2au
+            WRITE(unit, '(200e20.12)') y, potential(i,j,k) / feV2au
+        END DO
+        
+        CLOSE(unit)
+        
+    END SUBROUTINE WRITE_POTENTIAL_CROSS_SECTION_Y
+
 
 END MODULE WRITERS

@@ -102,13 +102,12 @@ MODULE SCHRODINGER
                 final_energy = energy
                 exit
             endif
-
-            energy_old = energy
-            psi = psi_new
-            ! PRINT*, "Iteration:", iter, "Energy:", energy/feV2au
             if (iter == MAX_TIME) then
                 print *, "Warning: Schrodinger solver reached MAX_ITER without convergence. (max error)", abs(energy-energy_old)
             end if
+            energy_old = energy
+            psi = psi_new
+            ! PRINT*, "Iteration:", iter, "Energy:", energy/feV2au
         END DO
         final_psi = psi
         final_energy = energy

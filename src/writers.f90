@@ -125,7 +125,7 @@ MODULE WRITERS
         j = Ny / 2
         DO k = 1, Nz
             z = (k-1) * dz / fnm2au
-            WRITE(unit, '(200e20.12)') z, -potential(i,j,k) / feV2au
+            WRITE(unit, '(200e20.12)') z, potential(i,j,k) / feV2au
         END DO
         
         CLOSE(unit)

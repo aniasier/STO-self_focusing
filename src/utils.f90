@@ -32,6 +32,26 @@ MODULE UTILS
 
     END SUBROUTINE GET_DENSITY
 
+    SUBROUTINE GET_NORM(density, Nx, Ny, Nz, dx, dz, norm)
+        IMPLICIT NONE
+        REAL*8, INTENT(IN) :: density(:,:,:)
+        REAL*8, INTENT(IN) :: dx, dz
+        INTEGER*4, INTENT(IN) :: Nx, Ny, Nz
+        REAL*8, INTENT(OUT) :: norm
+        INTEGER*4 :: i,j,k
+        norm = 0.d0
+        do i=1,Nx
+            do j=1,Ny
+                do k=1,Nz
+                    norm = norm + density(i,j,k)
+                enddo
+            enddo
+        enddo
+
+        norm = norm * dx * dx * dz
+
+    END SUBROUTINE GET_NORM
+
     SUBROUTINE GET_CHARGE_TRAPPED3D(charge_trapped3D, charge_trapped, nx, ny, nz)
         IMPLICIT NONE
         REAL*8, INTENT(OUT) :: charge_trapped3D(nx, ny, nz)

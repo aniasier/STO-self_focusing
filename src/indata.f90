@@ -8,6 +8,7 @@ MODULE INDATA
     INTEGER*4 :: Nz
     REAL*8 :: dx
     REAL*8 :: dz
+    INTEGER*4 :: z0_indx
     INTEGER*4 :: MAX_ITER
     INTEGER*4 :: MAX_ITER_SCF
     REAL*8 :: tol
@@ -30,6 +31,7 @@ MODULE INDATA
        &  Nz,                                     &
        &  dx,                                     &
        &  dz,                                     &
+       &  z0_indx,                                     &
        &  MAX_ITER,                               &
        &  MAX_ITER_SCF,                           &
        &  tol,                                    &
@@ -62,6 +64,7 @@ MODULE INDATA
         Nz = 0
         dx = 0.0
         dz = 0.0
+        z0_indx = 10
         MAX_ITER = 0
         MAX_ITER_SCF = 0
         tol = 0.0

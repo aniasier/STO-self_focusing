@@ -4,6 +4,7 @@
     Nz=700,
     dx=1.0,
     dz=0.1,
+    z0_indx=10,
     MAX_ITER=10000,
     MAX_ITER_SCF=1000,
     tol=1.0e-8,

@@ -21,7 +21,7 @@ PROGRAM MAIN
     REAL*8, ALLOCATABLE :: init_psi(:,:,:)
     REAL*8, ALLOCATABLE :: final_psi(:,:,:)
     REAL*8 :: x0, y0, z0 ! gauss centering
-    INTEGER*4 :: i, j, k, iz, iter, z0_indx
+    INTEGER*4 :: i, j, k, iz, iter
     REAL*8 :: z
     REAL*8 :: energy, energy_old, eps_local
     CHARACTER(LEN=50) :: filename
@@ -44,7 +44,6 @@ PROGRAM MAIN
     ALLOCATE(final_psi(nx, ny, nz))
     
     potential_eps0(:,:,:) =0.0d0
-    z0_indx = 10
     x0 = (nx-1)*dx/2.0d0
     y0 = (ny-1)*dx/2.0d0
     z0 = (z0_indx)*dz

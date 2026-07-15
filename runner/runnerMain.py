@@ -11,7 +11,7 @@ def main():
     # Bz = [0.01]
     # for b in Bz:
     #     runner.run_slurm_param_value([(nml_name1, "n0_trapped", b)], runsDir="negativeU/nowe/size/80", machine="default")
-    runner.run_slurm_param_value([(nml_name1, "sigma", 10.0)], runsDir="STO-self_focusing/sigma_better/crossections", machine="default")
+    runner.run_slurm_param_value([(nml_name1, "sigma", 2.0)], runsDir="STO-self_focusing/tests_focusing", machine="default")
     
 if __name__ == "__main__":
     main()

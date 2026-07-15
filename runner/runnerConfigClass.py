@@ -79,8 +79,9 @@ class RunnerConfig:
                 Nx=100, \
                 Ny=100, \
                 Nz=1000, \
-                dx=1.0, \
+                dx=0.2, \
                 dz=0.07, \
+                z0_indx=10, \
                 MAX_ITER=10000, \
                 MAX_ITER_SCF=40, \
                 tol=1.0e-8, \

@@ -144,7 +144,7 @@ PROGRAM MAIN
         init_psi=final_psi
     END DO
 
-    PRINT*, "ENERGY (meV):", energy/feV2au
+    PRINT*, "ENERGY (meV):", energy/feV2au*1e3
 
 
     DEALLOCATE(charge_trapped)

@@ -96,8 +96,8 @@ MODULE SCHRODINGER
 
             energy = energy*dx*dx*dz
             if (abs(energy-energy_old) < tol) then
-                print*, "Converged after", iter, "iterations"
-                print*, "Energy (eV): ", energy/feV2au
+                print*, "Schrodinger converged after", iter, "iterations"
+                print*, "Energy (meV): ", energy/feV2au*1e3
                 final_psi = psi_new
                 final_energy = energy
                 exit

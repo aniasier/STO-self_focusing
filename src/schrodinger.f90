@@ -35,7 +35,7 @@ MODULE SCHRODINGER
         psi = init_psi
        
         energy_old = 1.d99
-        tol = 1.d-6
+        ! tol = 1.d-6
         DO iter =1, MAX_TIME
             ham(:,:,:) = 0.0d0
             DO i=2, Nx-1
@@ -59,11 +59,6 @@ MODULE SCHRODINGER
                     end do
                 end do
             end do
-            ! print*, "norm =", norm
-            norm = sqrt(norm*dx*dx*dz)
-
-            psi_new = psi_new/norm
-            ! psi_new = psi_new / norm
 
             psi_new(1,:,:)  = 0.d0
             psi_new(Nx,:,:) = 0.d0
@@ -73,6 +68,12 @@ MODULE SCHRODINGER
             psi_new(:,:,Nz) = 0.d0
             energy = 0.d0
             ham(:,:,:) = 0.0d0
+
+            ! print*, "norm =", norm
+            norm = sqrt(norm*dx*dx*dz)
+
+            psi_new = psi_new/norm
+            ! psi_new = psi_new / norm
 
             DO i=2, Nx-1
                 DO  j=2, Ny-1
@@ -107,7 +108,7 @@ MODULE SCHRODINGER
             end if
             energy_old = energy
             psi = psi_new
-            ! PRINT*, "Iteration:", iter, "Energy:", energy/feV2au
+            PRINT*, "Iteration:", iter, "Energy:", energy/feV2au
         END DO
         final_psi = psi
         final_energy = energy

@@ -99,43 +99,15 @@ PROGRAM MAIN
         ! PRINT*, 'potential eps0 (max): ', maxval(potential_eps0)
         ! PRINT*, 'potential eps0 (min): ', minval(potential_eps0)
         potential = potential - potential_eps0
-        WRITE(filename, '(A,I0,A)') './data/potential_final_', iter, '.dat'
-        CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, dz, filename)
-
-        WRITE(filename, '(A,I0,A)') './data/potential_final_slice_', iter, '.dat'
-        CALL WRITE_POTENTIAL_2D_XY_SLICE(potential, nx, ny, nz, dx, dz, z0_indx, filename)
-
-        WRITE(filename, '(A,I0,A)') './data/potential_final_crossection_', iter, '.dat'
-        CALL WRITE_POTENTIAL_CROSS_SECTION(potential, Nx, Ny, Nz, dz, filename)
-
-        WRITE(filename, '(A,I0,A)') './data/potential_final_crossection_x_', iter, '.dat'
-        CALL WRITE_POTENTIAL_CROSS_SECTION_X(potential, Nx, Ny, Nz, dx, z0_indx, filename)
-
-        WRITE(filename, '(A,I0,A)') './data/potential_final_crossection_y_', iter, '.dat'
-        CALL WRITE_POTENTIAL_CROSS_SECTION_Y(potential, Nx, Ny, Nz, dx, z0_indx, filename)
-
+        
         ! state 5: imaginary time method for schrodinger equation
-        ! potential = 0.0d0
-        ! print*, "Expected E =", (3.14159265d0**2/(2.0d0*m1) * &
-        ! (2.0d0/((Nx-1)*dx)**2 + 1.0d0/((Nz-1)*dz)**2))/ feV2au
+        potential = 0.0d0
+        print*, "Expected E =", (3.14159265d0**2/(2.0d0*m1) * &
+        (2.0d0/((Nx-1)*dx)**2 + 1.0d0/((Nz-1)*dz)**2))/ feV2au
 
         CALL IMAGINARY_TIME(potential, Nx, Ny, Nz, dx, dz, dt, MAX_TIME, m1, m2, init_psi, final_psi, energy)
+        STOP
         CALL GET_DENSITY(density, final_psi, nx, ny, nz)
-        WRITE(filename, '(A,I0,A)') './data/density3D_', iter, '.dat'
-        CALL WRITE_DENSITY_2D_XY(density, Nx, Ny, Nz, dx, dz, filename)
-
-        WRITE(filename, '(A,I0,A)') './data/density_final_slice_', iter, '.dat'
-        CALL WRITE_POTENTIAL_2D_XY_SLICE(density, nx, ny, nz, dx, dz, z0_indx, filename)
-
-        WRITE(filename, '(A,I0,A)') './data/density_final_crossection_', iter, '.dat'
-        CALL WRITE_POTENTIAL_CROSS_SECTION(density, Nx, Ny, Nz, dz, filename)
-
-        WRITE(filename, '(A,I0,A)') './data/density_final_crossection_x_', iter, '.dat'
-        CALL WRITE_POTENTIAL_CROSS_SECTION_X(density, Nx, Ny, Nz, dx, z0_indx, filename)
-
-        WRITE(filename, '(A,I0,A)') './data/density_final_crossection_y_', iter, '.dat'
-        CALL WRITE_POTENTIAL_CROSS_SECTION_Y(density, Nx, Ny, Nz, dx, z0_indx, filename)
-
         if (abs(energy-energy_old) < tol_scf) then
                 print*, "Converged after", iter, "iterations"
                 exit
@@ -143,6 +115,18 @@ PROGRAM MAIN
         energy_old = energy
         init_psi=final_psi
     END DO
+    CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, dz, './data/potential_final.dat')
+    CALL WRITE_POTENTIAL_2D_XY_SLICE(potential, nx, ny, nz, dx, dz, z0_indx, './data/potential_final_slice.dat')
+    CALL WRITE_POTENTIAL_CROSS_SECTION(potential, Nx, Ny, Nz, dz, './data/potential_final_crossection.dat')
+    CALL WRITE_POTENTIAL_CROSS_SECTION_X(potential, Nx, Ny, Nz, dx, z0_indx, './data/potential_final_crossection_x.dat')
+    CALL WRITE_POTENTIAL_CROSS_SECTION_Y(potential, Nx, Ny, Nz, dx, z0_indx, './data/potential_final_crossection_y.dat')
+
+    CALL WRITE_DENSITY_2D_XY(density, Nx, Ny, Nz, dx, dz, './data/density3D.dat')
+    CALL WRITE_POTENTIAL_2D_XY_SLICE(density, nx, ny, nz, dx, dz, z0_indx, './data/density_final_slice.dat')
+    CALL WRITE_POTENTIAL_CROSS_SECTION(density, Nx, Ny, Nz, dz, './data/density_final_crossection.dat')
+    CALL WRITE_POTENTIAL_CROSS_SECTION_X(density, Nx, Ny, Nz, dx, z0_indx, './data/density_final_crossection_x.dat')
+    CALL WRITE_POTENTIAL_CROSS_SECTION_Y(density, Nx, Ny, Nz, dx, z0_indx, './data/density_final_crossection_y.dat')
+
 
     PRINT*, "ENERGY (meV):", energy/feV2au*1e3
 

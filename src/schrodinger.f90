@@ -4,19 +4,19 @@ MODULE SCHRODINGER
     IMPLICIT NONE
     CONTAINS
 
-    SUBROUTINE IMAGINARY_TIME(potential, Nx, Ny, Nz, dx, dz, dt, MAX_TIME, m1, m2, init_psi, final_psi, final_energy)
+    SUBROUTINE IMAGINARY_TIME(potential, Nx, Ny, Nz, dx, dz, dt, MAX_TIME, m1, m2, init_psi, final_psi, final_energy, tol)
         IMPLICIT NONE
         REAL*8, INTENT(IN) :: potential(:,:,:)
         REAL*8, INTENT(IN) :: init_psi(:,:,:)
         REAL*8, INTENT(OUT) :: final_psi(Nx,Ny,Nz)
         REAL*8, INTENT(OUT) :: final_energy
-        REAL*8, INTENT(IN) :: dx, dz, m1, m2, dt
+        REAL*8, INTENT(IN) :: dx, dz, m1, m2, dt, tol
         INTEGER*4, INTENT(IN) :: Nx, Ny, Nz, MAX_TIME
         REAL*8, ALLOCATABLE :: psi(:,:,:)
         REAL*8, ALLOCATABLE :: psi_new(:,:,:)
         REAL*8, ALLOCATABLE :: ham(:,:,:)
         INTEGER*4 :: i,j,k, iter
-        REAL*8 :: energy, energy_old, tol, norm
+        REAL*8 :: energy, energy_old, norm
 
         energy = 0.0d0
 
@@ -96,7 +96,7 @@ MODULE SCHRODINGER
             end do
 
             energy = energy*dx*dx*dz
-            if (abs(energy-energy_old) < tol) then
+            if (abs((energy-energy_old)/feV2au) < tol) then
                 print*, "Schrodinger converged after", iter, "iterations"
                 print*, "Energy (meV): ", energy/feV2au*1e3
                 final_psi = psi_new
@@ -104,11 +104,12 @@ MODULE SCHRODINGER
                 exit
             endif
             if (iter == MAX_TIME) then
-                print *, "Warning: Schrodinger solver reached MAX_ITER without convergence. (max error)", abs(energy-energy_old)
+                print *, "Warning: Schrodinger solver reached MAX_ITER without convergence. (max error)",&
+                 abs(energy-energy_old)/feV2au
             end if
             energy_old = energy
             psi = psi_new
-            PRINT*, "Iteration:", iter, "Energy:", energy/feV2au
+            ! PRINT*, "Iteration:", iter, "Energy:", energy/feV2au
         END DO
         final_psi = psi
         final_energy = energy

@@ -17,8 +17,12 @@ MODULE SCHRODINGER
         REAL*8, ALLOCATABLE :: ham(:,:,:)
         INTEGER*4 :: i,j,k, iter
         REAL*8 :: energy, energy_old, norm
+        REAL*8 :: kinetic_energy, potential_energy
+        REAL*8 :: kinetic_term, potential_term
 
         energy = 0.0d0
+        kinetic_energy = 0.0d0
+        potential_energy = 0.0d0
 
         ! print*, "dt (au) =", dt
         ! print*, "dx (au) =", dx
@@ -67,6 +71,8 @@ MODULE SCHRODINGER
             psi_new(:,:,1)  = 0.d0
             psi_new(:,:,Nz) = 0.d0
             energy = 0.d0
+            kinetic_energy = 0.d0
+            potential_energy = 0.d0
             ham(:,:,:) = 0.0d0
 
             ! print*, "norm =", norm
@@ -89,16 +95,27 @@ MODULE SCHRODINGER
             do j=2,Ny-1
             do k=2,Nz-1
 
-            energy = energy + psi_new(i,j,k)*ham(i,j,k)
+                kinetic_term = -1/(2.0d0*m1)*((psi_new(i+1,j,k)+psi_new(i-1,j,k) + psi_new(i,j+1,k)+psi_new(i,j-1,k)-&
+                    4.d0*psi_new(i,j,k))/(dx**2) + (psi_new(i,j,k+1)+psi_new(i,j,k-1) - 2.d0*psi_new(i,j,k) )/dz**2)
+                potential_term = potential(i,j,k) * psi_new(i,j,k)
+                ham(i,j,k) = kinetic_term + potential_term
+
+                energy = energy + psi_new(i,j,k)*ham(i,j,k)
+                kinetic_energy = kinetic_energy + psi_new(i,j,k)*kinetic_term
+                potential_energy = potential_energy + psi_new(i,j,k)*potential_term
 
             end do
             end do
             end do
 
             energy = energy*dx*dx*dz
+            kinetic_energy = kinetic_energy*dx*dx*dz
+            potential_energy = potential_energy*dx*dx*dz
             if (abs((energy-energy_old)/feV2au) < tol) then
                 print*, "Schrodinger converged after", iter, "iterations"
-                print*, "Energy (meV): ", energy/feV2au*1e3
+                print*, "Total energy (meV): ", energy/feV2au*1e3
+                print*, "Kinetic energy (meV): ", kinetic_energy/feV2au*1e3
+                print*, "Potential energy (meV): ", potential_energy/feV2au*1e3
                 final_psi = psi_new
                 final_energy = energy
                 exit

@@ -25,6 +25,9 @@ PROGRAM MAIN
     REAL*8 :: z
     REAL*8 :: energy, energy_old, eps_local
     CHARACTER(LEN=50) :: filename
+    integer :: clock_start, clock_end, clock_rate
+    real*8 :: elapsed_time, deps
+    call system_clock(clock_start, clock_rate)
 
     eps_0=100 ! <- do wzoru na permittivity wyraz wolny
     ! thickness=12.0*fnm2au
@@ -49,6 +52,10 @@ PROGRAM MAIN
     z0 = (z0_indx)*dz
     ! stage 1: z direction
     CALL POISSON_ZDIRECTION_INIT(n0_trapped, L_trapped, eps_0, nz, dz, charge_trapped, electric_field, potential_z)
+    deps = abs((permitivity(eps_0,electric_field(1))-permitivity(eps_0,electric_field(2)))/(electric_field(1)-electric_field(2)))
+    print*, deps
+
+    STOP
     ! CALL POISSON_ZDIRECTION(electric_field_new, electric_field, charge_trapped, eps_0,  nz, dz)
     ! stage 2: dielectric
     CALL GET_EPSILON(electric_field, eps_0, nx, ny, nz, epsilon)
@@ -131,6 +138,9 @@ PROGRAM MAIN
 
 
     PRINT*, "ENERGY (meV):", energy/feV2au*1e3
+    call system_clock(clock_end)
+    elapsed_time = real(clock_end-clock_start,8)/real(clock_rate,8)
+    print *, "Time [s] =", elapsed_time
 
 
     DEALLOCATE(charge_trapped)

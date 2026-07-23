@@ -604,11 +604,17 @@ CONTAINS
         do iz=1,nz
             pot_hartree(iz)=x_prd(iz,1)
         enddo
-
-        do iz=1,nz-1
-            electric_field(iz)=(-pot_hartree(iz+1)+pot_hartree(iz))/dz
+        do iz=2,nz-1
+            electric_field(iz)=-(pot_hartree(iz+1)-pot_hartree(iz-1))/(2.d0*dz)
         enddo
+        electric_field(1)=electric_field(2)
         electric_field(nz)=electric_field(nz-1)
+
+        print*, "dz=",dz
+        print*, "Lz=",dz*(nz-1)
+        print*, "Q=",sum(charge_trapped)*dz
+        print*, "V=",maxval(abs(pot_hartree))
+        print*, "E=",maxval(abs(electric_field))
 
         !!!!!!!!!!!!! zapis do pliku !!!!!!!!!!!!!!!!!!
         OPEN(1, FILE="./data/charge_trapped.dat")

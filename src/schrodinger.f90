@@ -18,7 +18,7 @@ MODULE SCHRODINGER
         INTEGER*4 :: i,j,k, iter
         REAL*8 :: energy, energy_old, norm
         REAL*8 :: kinetic_energy, potential_energy
-        REAL*8 :: kinetic_term, potential_term
+        REAL*8 :: ham_temp
 
         energy = 0.0d0
         kinetic_energy = 0.0d0
@@ -27,7 +27,7 @@ MODULE SCHRODINGER
         ! print*, "dt (au) =", dt
         ! print*, "dx (au) =", dx
         ! print*, "stability limit =", 1.0d0/(2.0d0*(3.0d0/(m1*dx**2)))
-        if (dt > 1.0d0/(2.0d0*(3.0d0/(m1*dx**2)))) then
+        if (dt > m1/(2.d0*(2.d0/dx**2 + 1.d0/dz**2))) then
             print*, "WARNING: dt too large, will blow up"
             stop
         endif
@@ -42,23 +42,25 @@ MODULE SCHRODINGER
         ! tol = 1.d-6
         DO iter =1, MAX_TIME
             ham(:,:,:) = 0.0d0
-            DO i=2, Nx-1
+            !!$omp parallel do collapse(3) schedule(static)
+            DO k=2, Nz-1
                 DO  j=2, Ny-1
-                    DO k=2, Nz-1
+                    DO i=2, Nx-1
                         ham(i,j,k) = -1/(2.0d0*m1)*(( psi(i+1,j,k)+psi(i-1,j,k) + psi(i,j+1,k)+psi(i,j-1,k)-&
                         4.d0*psi(i,j,k))/(dx**2) + (psi(i,j,k+1)+psi(i,j,k-1) - 2.d0*psi(i,j,k) )/dz**2) &
                         + potential(i,j,k) * psi(i,j,k)
                     END DO
                 END DO
             END DO
+            !!$omp end parallel do
             psi_new = psi - dt*ham
             norm = 0.d0
 
-            do i=1,Nx
+            do k=1,Nz
                 do j=1,Ny
-                    do k=1,Nz
+                    do i=1,Nx
 
-                    norm = norm + abs(psi_new(i,j,k))**2
+                    norm = norm + (psi_new(i,j,k))**2
 
                     end do
                 end do
@@ -71,8 +73,6 @@ MODULE SCHRODINGER
             psi_new(:,:,1)  = 0.d0
             psi_new(:,:,Nz) = 0.d0
             energy = 0.d0
-            kinetic_energy = 0.d0
-            potential_energy = 0.d0
             ham(:,:,:) = 0.0d0
 
             ! print*, "norm =", norm
@@ -84,38 +84,19 @@ MODULE SCHRODINGER
             DO i=2, Nx-1
                 DO  j=2, Ny-1
                     DO k=2, Nz-1
-                        ham(i,j,k) = -1/(2.0d0*m1)*((psi_new(i+1,j,k)+psi_new(i-1,j,k) + psi_new(i,j+1,k)+psi_new(i,j-1,k)-&
+                        ham_temp = -1/(2.0d0*m1)*((psi_new(i+1,j,k)+psi_new(i-1,j,k) + psi_new(i,j+1,k)+psi_new(i,j-1,k)-&
                         4.d0*psi_new(i,j,k))/(dx**2) + (psi_new(i,j,k+1)+psi_new(i,j,k-1) - 2.d0*psi_new(i,j,k) )/dz**2) &
                         + potential(i,j,k) * psi_new(i,j,k)
+                        energy = energy + psi_new(i,j,k)*ham_temp
                     END DO
                 END DO
             END DO
 
-            do i=2,Nx-1
-            do j=2,Ny-1
-            do k=2,Nz-1
-
-                kinetic_term = -1/(2.0d0*m1)*((psi_new(i+1,j,k)+psi_new(i-1,j,k) + psi_new(i,j+1,k)+psi_new(i,j-1,k)-&
-                    4.d0*psi_new(i,j,k))/(dx**2) + (psi_new(i,j,k+1)+psi_new(i,j,k-1) - 2.d0*psi_new(i,j,k) )/dz**2)
-                potential_term = potential(i,j,k) * psi_new(i,j,k)
-                ham(i,j,k) = kinetic_term + potential_term
-
-                energy = energy + psi_new(i,j,k)*ham(i,j,k)
-                kinetic_energy = kinetic_energy + psi_new(i,j,k)*kinetic_term
-                potential_energy = potential_energy + psi_new(i,j,k)*potential_term
-
-            end do
-            end do
-            end do
 
             energy = energy*dx*dx*dz
-            kinetic_energy = kinetic_energy*dx*dx*dz
-            potential_energy = potential_energy*dx*dx*dz
             if (abs((energy-energy_old)/feV2au) < tol) then
                 print*, "Schrodinger converged after", iter, "iterations"
                 print*, "Total energy (meV): ", energy/feV2au*1e3
-                print*, "Kinetic energy (meV): ", kinetic_energy/feV2au*1e3
-                print*, "Potential energy (meV): ", potential_energy/feV2au*1e3
                 final_psi = psi_new
                 final_energy = energy
                 exit

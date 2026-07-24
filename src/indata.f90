@@ -5,9 +5,11 @@ MODULE INDATA
     ! calculation parameters
     INTEGER*4 :: Nx
     INTEGER*4 :: Ny
-    INTEGER*4 :: Nz
+    INTEGER*4 :: Nz_1D
+    INTEGER*4 :: Nz_3D
     REAL*8 :: dx
-    REAL*8 :: dz
+    REAL*8 :: dz_1D
+    REAL*8 :: dz_3D
     INTEGER*4 :: z0_indx
     INTEGER*4 :: MAX_ITER
     INTEGER*4 :: MAX_ITER_SCF
@@ -28,10 +30,12 @@ MODULE INDATA
     NAMELIST /calculation_parameters/             &
        &  Nx,                                     &
        &  Ny,                                     &
-       &  Nz,                                     &
+       &  Nz_1D,                                  &
+       &  Nz_3D,                                  &
        &  dx,                                     &
-       &  dz,                                     &
-       &  z0_indx,                                     &
+       &  dz_1D,                                  &
+       &  dz_3D,                                  &
+       &  z0_indx,                                &
        &  MAX_ITER,                               &
        &  MAX_ITER_SCF,                           &
        &  tol,                                    &
@@ -42,7 +46,7 @@ MODULE INDATA
 
     NAMELIST /physical_parameters/               &
     &  n0_trapped,                               &
-    &  L_trapped,                               &
+    &  L_trapped,                                &
     &  m1,                                       &
     &  m2,                                       &
     &  norbital,                                 &
@@ -61,9 +65,11 @@ MODULE INDATA
 
         Nx = 0
         Ny = 0
-        Nz = 0
+        Nz_1D = 0
+        Nz_3D = 0
         dx = 0.0
-        dz = 0.0
+        dz_1D = 0.0
+        dz_3D = 0.0
         z0_indx = 10
         MAX_ITER = 0
         MAX_ITER_SCF = 0
@@ -82,7 +88,8 @@ MODULE INDATA
 
         READ (33, NML=calculation_parameters)
         dx = dx * fnm2au
-        dz = dz * fnm2au
+        dz_1D = dz_1D * fnm2au
+        dz_3D = dz_3D * fnm2au
         dt = dt * fns2au
 
         READ (33, NML=physical_parameters)

@@ -1,9 +1,11 @@
 &calculation_parameters
     Nx=60,
     Ny=60,
-    Nz=200,
+    Nz_1D=5001,
+    Nz_3D=201,
     dx=0.3,
-    dz=0.14,
+    dz_1D=0.02,
+    dz_3D=0.5,
     z0_indx=10,
     MAX_ITER=10000,
     MAX_ITER_SCF=1000,

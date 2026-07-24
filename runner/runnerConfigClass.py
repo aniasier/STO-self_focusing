@@ -78,20 +78,22 @@ class RunnerConfig:
             f"&calculation_parameters \
                 Nx=100, \
                 Ny=100, \
-                Nz=1000, \
-                dx=0.2, \
-                dz=0.07, \
+                Nz_1D=5001, \
+                Nz_3D=201, \
+                dx=1.0, \
+                dz_1D=0.02, \
+                dz_3D=0.5, \
                 z0_indx=10, \
                 MAX_ITER=10000, \
                 MAX_ITER_SCF=40, \
-                tol=1.0e-8, \
-                tol_scf=1.0e-6, \
+                tol=1.0e-9, \
+                tol_scf=1.0e-7, \
                 alfa=0.5, \
-                dt=1e-9, \
-                MAX_TIME=500/ \
+                dt=1e-8, \
+                MAX_TIME=100000/ \
             &physical_parameters \
                 n0_trapped=5.0, \
-                L_trapped=10.0, \
+                L_trapped=15.0, \
                 m1=0.28, \
                 m2=3.5, \
                 norbital=1, \

@@ -17,18 +17,19 @@ MODULE DIELECTRIC
     return
 end
 
-SUBROUTINE GET_EPSILON(electric_field, eps0, nx, ny, nz, epsilon)
+SUBROUTINE GET_EPSILON(electric_field, eps0, nx, ny, nz_1D, nz_3d, epsilon)
     IMPLICIT NONE
     REAL*8, INTENT (IN) :: eps0
-    INTEGER*4, INTENT(IN) :: nx, ny, nz
-    REAL*8, INTENT (IN) :: electric_field(nz)
-    REAL*8, INTENT(OUT) :: epsilon(nx, ny, nz)
-    INTEGER*4 :: i, j, k
+    INTEGER*4, INTENT(IN) :: nx, ny, nz_1d, nz_3d
+    REAL*8, INTENT (IN) :: electric_field(nz_1d)
+    REAL*8, INTENT(OUT) :: epsilon(nx, ny, nz_3d)
+    INTEGER*4 :: i, j, k,  mult_factor
     REAL*8 :: val
-    DO k=1, Nz
-        val = permitivity(eps0, electric_field(k))
-        DO i=1, nx
-            DO j=1, ny
+    mult_factor = (nz_1d-1)/(nz_3d-1)
+    DO k = 1, nz_3d
+        val = permitivity(eps0, electric_field(1 + (k-1)*mult_factor))
+        DO i = 1, nx
+            DO j = 1, ny
                 epsilon(i,j,k) = val
             END DO
         END DO

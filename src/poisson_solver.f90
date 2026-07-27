@@ -308,7 +308,6 @@ CONTAINS
         REAL*8            :: sum_e, res, old_val, max_err, source, val
         ! print*, maxval(density)
         ! print*, 1/(2*pi*(5.0*fnm2au)**2)**(1.5)
-
         do iter = 1, MAX_ITER
             max_err = 0.0d0
 
@@ -317,8 +316,18 @@ CONTAINS
             do j = 2, Ny - 1
                 do i = 2, Nx - 1
                     old_val = potential(i,j,k)
-                    
                     res=potential(i,j,k+1) 
+                    potential(i,j,k) = (1.0d0 - alfa) * old_val + alfa * res
+                    max_err = max(max_err, abs(potential(i,j,k) - old_val))
+                end do
+            end do
+
+            k = Nz
+            do j = 2, Ny - 1
+                do i = 2, Nx - 1
+                    old_val = potential(i,j,k)
+                    
+                    res=potential(i,j,k-1) 
 
                     potential(i,j,k) = (1.0d0 - alfa) * old_val + alfa * res
                     max_err = max(max_err, abs(potential(i,j,k) - old_val))
@@ -387,7 +396,7 @@ CONTAINS
                         potential(i,j,k) = (1.0d0 - alfa) * old_val + alfa * res
                         
                         max_err = max(max_err, abs(potential(i,j,k) - old_val))
-                     end do
+                    end do
                 end do
             end do
 
@@ -395,6 +404,9 @@ CONTAINS
 
             ! print *, iter, max_err
             if (max_err < TOL) exit
+            if (iter == MAX_ITER) then
+                print *, "Warning: Poisson_epsilon_no_charge solver reached MAX_ITER without convergence. (max error)", max_err
+            end if
         end do
         print *, "Converged in ", iter, " iterations. Final error: ", max_err
 
@@ -422,15 +434,63 @@ CONTAINS
         ! Iterative Loop
         do iter = 1, MAX_ITER
             max_err = 0.0d0
-            
+            k = 1
+            do j = 2, Ny - 1
+                do i = 2, Nx - 1
+                    old_val = potential(i,j,k)
+                    res=potential(i,j,k+1) 
+                    potential(i,j,k) = (1.0d0 - alfa) * old_val + alfa * res
+                    max_err = max(max_err, abs(potential(i,j,k) - old_val))
+                end do
+            end do
 
+            k = Nz
+            do j = 2, Ny - 1
+                do i = 2, Nx - 1
+                    old_val = potential(i,j,k)
+                    res=potential(i,j,k-1) 
+                    potential(i,j,k) = (1.0d0 - alfa) * old_val + alfa * res
+                    max_err = max(max_err, abs(potential(i,j,k) - old_val))
+                end do
+            end do
+            
+            ! ---------2. Neumann BC at x and y boundaries (zero normal derivative) ---------
+            ! update: Dirichlet boundary conditions
+            i=1
+            do k = 2, Nz - 1
+            do j = 1, Ny 
+                potential(i,j,k) = 0.0!potential(i+1,j,k)
+            enddo
+            enddo
+
+            i=Nx
+            do k = 2, Nz - 1
+            do j = 1, Ny 
+                potential(i,j,k) = 0.0 !potential(i-1,j,k)
+            enddo
+            enddo
+
+            j=1
+            do k = 2, Nz - 1
+            do i = 1, Nx
+                potential(i,j,k) = 0.0! potential(i,j+1,k)
+            enddo
+            enddo
+
+            j=Ny
+            do k = 2, Nz - 1
+            do i = 1, Nx
+                potential(i,j,k) = 0.0 !potential(i,j-1,k)
+            enddo
+            enddo
             ! Perform Gauss-Seidel update on interior nodes
             ! Boundaries (1 and N) are treated as Dirichlet (fixed)
             do k = 2, Nz - 1
                 do j = 2, Ny - 1
                     do i = 2, Nx - 1
                         
-                        source = density(i,j,k)/(epsilon0*epsilon)
+                        source = -density(i,j,k)/(epsilon0*epsilon)
+                        old_val = potential(i,j,k)
 
                         coef_xy = 1.0d0/(dx*dx)
                         coef_z  = 1.0d0/(dz*dz)
@@ -446,13 +506,13 @@ CONTAINS
                         potential(i,j,k) = (1.0d0 - alfa) * old_val + alfa * res
                         ! Track maximum change for convergence
                         max_err = max(max_err, abs(potential(i,j,k) - old_val))
-                        
                     end do
                 end do
             end do
 
             ! print *, "Poisson at iteration: iter, max_err ", iter, max_err
             ! Convergence Check
+           
             if (max_err < tol) then
                 print *, "Poisson converged at iteration: ", iter, max_err
                 exit
@@ -610,11 +670,11 @@ CONTAINS
         electric_field(1)=electric_field(2)
         electric_field(nz)=electric_field(nz-1)
 
-        print*, "dz=",dz
-        print*, "Lz=",dz*(nz-1)
-        print*, "Q=",sum(charge_trapped)*dz
-        print*, "V=",maxval(abs(pot_hartree))
-        print*, "E=",maxval(abs(electric_field))
+        ! print*, "dz=",dz
+        ! print*, "Lz=",dz*(nz-1)
+        ! print*, "Q=",sum(charge_trapped)*dz
+        ! print*, "V=",maxval(abs(pot_hartree))
+        ! print*, "E=",maxval(abs(electric_field))
 
         !!!!!!!!!!!!! zapis do pliku !!!!!!!!!!!!!!!!!!
         OPEN(1, FILE="./data/charge_trapped.dat")

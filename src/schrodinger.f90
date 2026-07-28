@@ -23,6 +23,8 @@ MODULE SCHRODINGER
         energy = 0.0d0
         kinetic_energy = 0.0d0
         potential_energy = 0.0d0
+        print *, "Potential max (Ha):", maxval(potential)
+        print *, "Potential min (Ha):", minval(potential)
 
         ! print*, "dt (au) =", dt
         ! print*, "dx (au) =", dx

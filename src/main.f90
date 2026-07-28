@@ -22,7 +22,7 @@ PROGRAM MAIN
     REAL*8, ALLOCATABLE :: final_psi(:,:,:)
     REAL*8 :: x0, y0, z0 ! gauss centering
     INTEGER*4 :: i, j, k, iz, iter
-    REAL*8 :: z
+    REAL*8 :: z, V0, sigma_v
     REAL*8 :: energy, energy_old, eps_local
     CHARACTER(LEN=50) :: filename
     integer :: clock_start, clock_end, clock_rate
@@ -69,7 +69,7 @@ PROGRAM MAIN
     DO iter = 1, MAX_ITER_SCF
         potential(:,:,:) =0.0d0
         ! PRINT*, "SCF ITERATION:", iter
-        CALL Poisson_epsilon_no_charge(potential, density, epsilon, alfa, nx, ny, nz_3d, dx, dz_3d, tol, MAX_ITER)
+        CALL Poisson_epsilon(potential, density, epsilon, alfa, nx, ny, nz_3d, dx, dz_3d, tol, MAX_ITER, charge_trapped3D)
         ! WRITE(filename, '(A,I0,A)') './data/potential_nocharge_', iter, '.dat'
         ! CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, dz, filename)
         ! CALL WRITE_POTENTIAL_CROSS_SECTION(potential, nx, ny, nz, dx, './data/potential_cross_section.dat')
@@ -110,7 +110,9 @@ PROGRAM MAIN
         ! potential = 0.0d0
         ! print*, "Expected E =", (3.14159265d0**2/(2.0d0*m1) * &
         ! (2.0d0/((Nx-1)*dx)**2 + 1.0d0/((Nz-1)*dz)**2))/ feV2au
-
+        ! V0 = 0.02 * feV2au
+        ! sigma_v = 5.0 * fnm2au
+        ! CALL ADD_POTENTIAL(V0, potential, Nx, Ny, Nz_3D, x0, y0, z0, sigma_v, dx, dz_3D)
         CALL IMAGINARY_TIME(potential, Nx, Ny, Nz_3d, dx, dz_3d, dt, MAX_TIME, m1, m2, init_psi, final_psi, energy, tol)
         CALL GET_DENSITY(density, final_psi, nx, ny, nz_3d)
         if (abs(energy-energy_old) < tol_scf) then

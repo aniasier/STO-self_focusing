@@ -107,4 +107,27 @@ MODULE UTILS
         enddo
     END SUBROUTINE GET_INIT_PSI
 
+    SUBROUTINE ADD_POTENTIAL(V0, potential, Nx, Ny, Nz, x0, y0, z0, sigma, dx, dz)
+        IMPLICIT NONE
+        REAL*8, INTENT(IN) :: V0
+        REAL*8, INTENT(INOUT) :: potential(Nx, Ny, Nz)
+        INTEGER*4, INTENT(IN) :: Nx, Ny, Nz
+        REAL*8, INTENT(IN) :: x0, y0, z0, sigma, dx, dz
+        INTEGER*4 :: i,j,k
+        REAL*8 :: r2, x, y, z
+
+        DO k=1,Nz
+            z = (k-1)*dz
+            DO j=1,Ny
+                y = (j-1)*dx
+                DO i=1,Nx
+                    x = (i-1)*dx
+                    r2 = (x-x0)**2 + (y-y0)**2 + (z-z0)**2
+                    potential(i,j,k) = -V0 * EXP(-r2/(2.0d0*sigma**2))
+                END DO
+            END DO
+        END DO
+
+    END SUBROUTINE ADD_POTENTIAL
+
 END MODULE UTILS

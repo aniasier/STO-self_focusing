@@ -283,7 +283,7 @@ CONTAINS
 
             !BC at z=0
 
-            print *, iter, max_err
+            ! print *, iter, max_err
             if (max_err < TOL) exit
         end do
         print *, "Converged in ", iter, " iterations. Final error: ", max_err
@@ -489,7 +489,7 @@ CONTAINS
                 do j = 2, Ny - 1
                     do i = 2, Nx - 1
                         
-                        source = -density(i,j,k)/(epsilon0*epsilon)
+                        source = density(i,j,k)/(epsilon0*epsilon)
                         old_val = potential(i,j,k)
 
                         coef_xy = 1.0d0/(dx*dx)

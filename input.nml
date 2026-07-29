@@ -1,27 +1,27 @@
 &calculation_parameters
-    Nx=60,
-    Ny=60,
-    Nz_1D=5001,
-    Nz_3D=201,
-    dx=0.3,
-    dz_1D=0.02,
-    dz_3D=0.5,
-    z0_indx=10,
-    MAX_ITER=10000,
-    MAX_ITER_SCF=1000,
-    tol=1.0e-9,
-    tol_scf=1.0e-7,
-    alfa=0.5,
-    dt=1e-8,
-    MAX_TIME=100000
-&end
+    nx = 60
+    ny = 60
+    nz_1d = 5001
+    nz_3d = 201
+    dx = 1.0
+    dz_1d = 0.02
+    dz_3d = 0.5
+    z0_indx = 10
+    max_iter = 100000
+    max_iter_scf = 40
+    tol = 1e-09
+    tol_scf = 1e-07
+    alfa = 0.5
+    dt = 1e-08
+    max_time = 100000
+/
 
 &physical_parameters
-    n0_trapped=1.0,
-    L_trapped=15.0,
-    m1=0.28,
-    m2=3.5,
-    norbital=1,
-    sigma=1.0
-&end
+    n0_trapped = 5.0
+    l_trapped = 15.0
+    m1 = 0.28
+    m2 = 3.5
+    norbital = 1
+    sigma = 5.0
+/
 

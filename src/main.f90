@@ -69,7 +69,9 @@ PROGRAM MAIN
     DO iter = 1, MAX_ITER_SCF
         potential(:,:,:) =0.0d0
         ! PRINT*, "SCF ITERATION:", iter
-        CALL Poisson_epsilon(potential, density, epsilon, alfa, nx, ny, nz_3d, dx, dz_3d, tol, MAX_ITER, charge_trapped3D)
+        print*, "poisson start"
+        CALL Poisson_epsilon_no_charge(potential, density, epsilon, alfa, nx, ny, nz_3d, dx, dz_3d, tol, MAX_ITER)
+        print*, "poisson finish"
         ! WRITE(filename, '(A,I0,A)') './data/potential_nocharge_', iter, '.dat'
         ! CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, dz, filename)
         ! CALL WRITE_POTENTIAL_CROSS_SECTION(potential, nx, ny, nz, dx, './data/potential_cross_section.dat')

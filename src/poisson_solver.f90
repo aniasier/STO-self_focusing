@@ -5,6 +5,7 @@
 MODULE Poisson_Solver
     USE CONSTANTS
     USE DIELECTRIC
+    USE UTILS
     IMPLICIT NONE
 
 CONTAINS
@@ -713,6 +714,218 @@ CONTAINS
 
         
     END SUBROUTINE POISSON_ZDIRECTION_INIT
+
+    SUBROUTINE POISSON_ZDIRECTION_PLUS_POTENTIAL(n0_trapped, L_trapped, eps_0,  nz, nx, ny, dz, dx, charge_trapped,&
+         electric_field, density, nz3d, dz3D, pot_hartree)
+        IMPLICIT NONE
+
+        REAL*8, intent(in) :: eps_0
+        REAL*8, intent(in) :: L_trapped
+        REAL*8, intent(in) :: n0_trapped
+        REAL*8, intent(in) :: dz
+        REAL*8, intent(in) :: dx
+        INTEGER*4, intent(in) :: nz
+        INTEGER*4, intent(in) :: nx
+        INTEGER*4, intent(in) :: ny
+        INTEGER*4, intent(in) :: nz3d
+        REAL*8, INTENT(IN) :: dz3D
+        REAL*8, INTENT(IN) :: density(:,:,:)
+        REAL*8, INTENT(OUT) :: charge_trapped(nz)
+        REAL*8, INTENT(OUT) :: electric_field(nz)
+        REAL*8, INTENT(OUT) :: pot_hartree(nz)
+
+        !zmienne pomocnicze
+        INTEGER :: i, iz, j
+        REAL*8 :: charge_bc
+        REAL*8 :: z
+        REAL*8 :: density_fine(nz)
+        REAL*8 :: charge_total(nz)
+
+        !PARDISO       
+        INTEGER, ALLOCATABLE :: nmat(:)
+        INTEGER :: pt_prd(64)= 0.
+        INTEGER :: maxfct_prd, mnum_prd, mtype_prd, phase_prd
+        INTEGER :: n_prd, nrhs_prd, error_prd
+        INTEGER, ALLOCATABLE :: ia_prd(:)
+        INTEGER, ALLOCATABLE :: ja_prd(:)
+        INTEGER, ALLOCATABLE ::  perm_prd(:)
+        INTEGER :: iparm_prd(64), msglvl_prd
+        REAL*8, ALLOCATABLE :: a_prd(:)
+        REAL*8, ALLOCATABLE :: b_prd(:,:)
+        REAL*8, ALLOCATABLE :: x_prd(:,:)
+        INTEGER :: maxnonzeroprd, nelem
+
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!! tablica charge_trapped !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        REAL*8 :: density_z(nz3d)
+
+        do iz = 1, nz3d
+            density_z(iz) = 0.d0
+
+            do i = 1, nx
+                do j = 1, ny
+                    density_z(iz) = density_z(iz) + density(i,j,iz)
+                enddo
+            enddo
+
+            density_z(iz) = density_z(iz) * dx * dx
+        enddo
+
+        CALL INTERPOLATE_1D(density, nz3d, dz3D, density_fine, nz, dz)
+
+        !trapped electrons in STO (note that there are eletrons !!! )
+        do iz=1,nz
+            z=(iz-1)*dz
+            charge_total(iz)=(n0_trapped/L_trapped)*dexp(-z/L_trapped) - density_fine(iz)
+        enddo
+
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !!!!!!! rozwiazanie rownania Poissona dla pierwszej iteracji z charge_trapped !!!!!!!!!!!
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+        nrhs_prd=1 ! number of rhs
+        n_prd=nz ! size of the matrix
+        maxnonzeroprd=(n_prd-2)*3+2+1 ! max non-zero
+
+        ALLOCATE( perm_prd(n_prd) )
+        ALLOCATE( ia_prd(n_prd+1) )
+        ALLOCATE( ja_prd(maxnonzeroprd) )
+        ALLOCATE( a_prd(maxnonzeroprd) )
+        ALLOCATE( b_prd(n_prd,nrhs_prd) )
+        ALLOCATE( x_prd(n_prd,nrhs_prd) )
+
+        pt_prd(:)= 0 ! default solver handle
+        maxfct_prd= 1 ! max number of factorzation matrix
+        mnum_prd= 1 ! which factorization
+        mtype_prd= 11   ! real nonsymmetric  
+        phase_prd= 13 ! analysis, numerical factorization and solve
+        msglvl_prd= 0 ! no verobse
+        iparm_prd(:)= 0 ! default params
+
+        perm_prd(:)= 0 ! default permutation
+        ia_prd(:)= 0 
+        ja_prd(:)= 0
+        a_prd(:)= 0. 
+        b_prd(:,:)= 0. ! right hand side
+        x_prd(:,:)= 0. ! solution vector
+
+
+        charge_bc=0.0
+        do iz=1,nz
+            charge_bc=charge_bc+charge_total(iz)*dz
+        enddo
+
+        nelem=1
+        DO i=1,nz
+
+            IF (i.eq.1) THEN
+                ia_prd(i)= nelem
+
+                ja_prd( nelem )=  i
+                a_prd( nelem )= -1.0
+                nelem= nelem + 1
+
+                ja_prd( nelem )=  i+1
+                a_prd( nelem )= 1.0
+                nelem= nelem + 1
+                
+            ELSE IF (i.eq.(nz)) THEN
+                ia_prd(i)= nelem
+                
+                ja_prd( nelem )=  i
+                a_prd( nelem )= 1.0
+                nelem= nelem + 1
+
+            ELSE
+                ia_prd(i)= nelem
+
+                ja_prd(nelem)=i-1
+                a_prd(nelem)= 1.0
+                nelem= nelem + 1
+
+                ja_prd( nelem )=  i
+                a_prd( nelem )= -2.0
+                nelem= nelem + 1
+
+                ja_prd( nelem )=  i+1
+                a_prd( nelem )= 1.0
+                nelem= nelem + 1
+            ENDIF
+
+        enddo
+
+        ia_prd( n_prd+1 )= nelem
+        IF (nelem-1 /= maxnonzeroprd) STOP "PARDISO:  nelem /= maxnonzeroprd"
+
+        !wektor wyrazow wolnych
+        DO i=2,nz-1
+        b_prd(i, 1)= -(-charge_total(i))*dz*dz/epsilon0/eps_0
+        ENDDO
+        !warunki brzegowe
+        b_prd( 1, 1 )= -charge_bc*dz/epsilon0/eps_0
+        b_prd( nz, 1 )= 0.0
+
+        CALL pardiso (pt_prd, maxfct_prd, mnum_prd, mtype_prd, phase_prd,      &
+                &        n_prd, a_prd, ia_prd, ja_prd, perm_prd, nrhs_prd,     &
+                &        iparm_prd, msglvl_prd, b_prd, x_prd, error_prd)
+        IF (error_prd /= 0)  THEN
+            PRINT*, "pardiso: error_prd =", error_prd
+            STOP
+        END IF
+
+        do iz=1,nz
+            pot_hartree(iz)=x_prd(iz,1)
+        enddo
+        do iz=2,nz-1
+            electric_field(iz)=-(pot_hartree(iz+1)-pot_hartree(iz-1))/(2.d0*dz)
+        enddo
+        electric_field(1)=electric_field(2)
+        electric_field(nz)=electric_field(nz-1)
+
+        ! print*, "dz=",dz
+        ! print*, "Lz=",dz*(nz-1)
+        ! print*, "Q=",sum(charge_total)*dz
+        ! print*, "V=",maxval(abs(pot_hartree))
+        ! print*, "E=",maxval(abs(electric_field))
+
+        !!!!!!!!!!!!! zapis do pliku !!!!!!!!!!!!!!!!!!
+        OPEN(1, FILE="./data/charge_trapped.dat")
+        do iz=1,nz
+            z=(iz-1)*dz
+            write(1, '(200e20.12)') z/fnm2au, charge_total(iz)/fne2au   
+        enddo
+        CLOSE(1)
+
+        OPEN(1, FILE="./data/potential_trapped.dat")
+        do iz=1,nz
+        z=(iz-1)*dz
+        write(1, '(200e20.12)') z/fnm2au, -pot_hartree(iz)/feV2au 
+        enddo
+        CLOSE(1)
+
+        OPEN(1, FILE="./data/electric_field_trapped.dat")
+        do iz=1,nz
+        z=(iz-1)*dz
+        write(1, '(200e20.12)') z/fnm2au, electric_field(iz)*fnm2au/feV2au 
+        enddo
+        CLOSE(1)
+
+        OPEN(1, FILE="./data/epsilon_trapped.dat")
+        do iz=1,nz
+            z=(iz-1)*dz
+            write(1, '(200e20.12)') z/fnm2au, permitivity(eps_0,electric_field(iz))
+        enddo
+        CLOSE(1)
+        DEALLOCATE(perm_prd)
+        DEALLOCATE(ia_prd)
+        DEALLOCATE(ja_prd)
+        DEALLOCATE(a_prd)
+        DEALLOCATE(b_prd)
+        DEALLOCATE(x_prd)
+
+        
+    END SUBROUTINE POISSON_ZDIRECTION_PLUS_POTENTIAL
 
 
     SUBROUTINE POISSON_ZDIRECTION(electric_field_new, electric_field, charge_trapped, eps_0,  nz, dz)

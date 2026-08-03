@@ -130,4 +130,39 @@ MODULE UTILS
 
     END SUBROUTINE ADD_POTENTIAL
 
+    SUBROUTINE INTERPOLATE_1D(data_coarse, nz_coarse, dz_coarse, &
+                          data_fine,   nz_fine,   dz_fine)
+
+    IMPLICIT NONE
+
+    INTEGER, INTENT(IN) :: nz_coarse, nz_fine
+    REAL*8, INTENT(IN) :: dz_coarse, dz_fine
+    REAL*8, INTENT(IN) :: data_coarse(nz_coarse)
+    REAL*8, INTENT(OUT) :: data_fine(nz_fine)
+
+    INTEGER :: kf, kc
+    REAL*8 :: z, alpha
+
+    do kf = 1, nz_fine
+
+        z = (kf-1)*dz_fine
+
+        kc = int(z/dz_coarse) + 1
+
+        if (kc >= nz_coarse) then
+            data_fine(kf) = data_coarse(nz_coarse)
+
+        else
+
+            alpha = (z-(kc-1)*dz_coarse)/dz_coarse
+
+            data_fine(kf) = (1.d0-alpha)*data_coarse(kc) + &
+                             alpha*data_coarse(kc+1)
+
+        endif
+
+    enddo
+
+END SUBROUTINE INTERPOLATE_1D
+
 END MODULE UTILS

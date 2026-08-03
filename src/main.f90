@@ -70,19 +70,6 @@ PROGRAM MAIN
         potential(:,:,:) =0.0d0
         ! PRINT*, "SCF ITERATION:", iter
         CALL Poisson_epsilon_no_charge(potential, density, epsilon, alfa, nx, ny, nz_3d, dx, dz_3d, tol, MAX_ITER)
-        ! WRITE(filename, '(A,I0,A)') './data/potential_nocharge_', iter, '.dat'
-        ! CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, dz, filename)
-        ! CALL WRITE_POTENTIAL_CROSS_SECTION(potential, nx, ny, nz, dx, './data/potential_cross_section.dat')
-        ! density_full = 0.0d0
-        ! DO i=1, Nx
-        !     DO j=1, Ny
-        !         DO k=1, Nz
-        !             density_full(i,j,k)=density(i,j,k)+ charge_trapped3D(i,j,k)
-        !         END DO
-        !     END DO
-        ! END DO
-        ! i need density_full because Poisson solver doesnt take charge trapped
-        
         DO k=1, Nz_3d
             DO j=1, Ny
                 DO i=1, Nx
@@ -90,29 +77,11 @@ PROGRAM MAIN
                 END DO
             END DO
         END DO
-
-        ! WRITE(filename, '(A,I0,A)') './data/potential_plus_z_', iter, '.dat'
-        ! CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz, dx, dz, filename)
         eps_local = epsilon(ceiling((nx-1)/2.0d0), ceiling((ny-1)/2.0d0), z0_indx)  
         ! stage 4: poisson with epsilon NOT changing
         CALL Poisson(potential_eps0, density, eps_local, alfa, Nx, Ny, Nz_3d, dx, dz_3d, tol, MAX_ITER)
-        ! subtracting -> only the influence of the changing eps at STO interface
-
-        ! WRITE(filename, '(A,I0,A)') './data/potential_eps0', iter, '.dat'
-        ! CALL WRITE_POTENTIAL_2D_XY(potential_eps0, nx, ny, nz, dx, dz, filename)
-        ! PRINT*, 'potential (max): ', maxval(potential)
-        ! PRINT*, 'potential (min): ', minval(potential)
-        ! PRINT*, 'potential eps0 (max): ', maxval(potential_eps0)
-        ! PRINT*, 'potential eps0 (min): ', minval(potential_eps0)
         potential = potential - potential_eps0
-        
-        ! state 5: imaginary time method for schrodinger equation
-        ! potential = 0.0d0
-        ! print*, "Expected E =", (3.14159265d0**2/(2.0d0*m1) * &
-        ! (2.0d0/((Nx-1)*dx)**2 + 1.0d0/((Nz-1)*dz)**2))/ feV2au
-        ! V0 = 0.02 * feV2au
-        ! sigma_v = 5.0 * fnm2au
-        ! CALL ADD_POTENTIAL(V0, potential, Nx, Ny, Nz_3D, x0, y0, z0, sigma_v, dx, dz_3D)
+    
         CALL IMAGINARY_TIME(potential, Nx, Ny, Nz_3d, dx, dz_3d, dt, MAX_TIME, m1, m2, init_psi, final_psi, energy, tol)
         CALL GET_DENSITY(density, final_psi, nx, ny, nz_3d)
         if (abs(energy-energy_old) < tol_scf) then
@@ -121,6 +90,9 @@ PROGRAM MAIN
             endif
         energy_old = energy
         init_psi=final_psi
+        CALL POISSON_ZDIRECTION_PLUS_POTENTIAL(n0_trapped, L_trapped, eps_0,  nz_1D, nx, ny, dz_1D, dx, charge_trapped, &
+        electric_field, density, nz_3d, dz_3D, potential_z)
+        CALL GET_EPSILON(electric_field, eps_0, nx, ny, nz_1d, nz_3d, epsilon)
     END DO
     CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz_3d, dx, dz_3d, './data/potential_final.dat')
     ! CALL WRITE_POTENTIAL_2D_XY_SLICE(potential, nx, ny, nz, dx, dz, z0_indx, './data/potential_final_slice.dat')

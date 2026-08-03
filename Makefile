@@ -69,7 +69,7 @@ $(OBJ_DIR)/dielectric.o: $(SRC_DIR)/dielectric.f90 $(OBJ_DIR)/constants.o
 $(OBJ_DIR)/schrodinger.o: $(SRC_DIR)/schrodinger.f90 $(OBJ_DIR)/utils.o $(OBJ_DIR)/constants.o
 	$(FC) $(FFLAGS) $(INCLUDES) -J$(MOD_DIR) -I$(MOD_DIR) -c $< -o $@
 
-$(OBJ_DIR)/poisson_solver.o: $(SRC_DIR)/poisson_solver.f90 $(OBJ_DIR)/constants.o $(OBJ_DIR)/dielectric.o
+$(OBJ_DIR)/poisson_solver.o: $(SRC_DIR)/poisson_solver.f90 $(OBJ_DIR)/constants.o $(OBJ_DIR)/dielectric.o $(OBJ_DIR)/utils.o
 	$(FC) $(FFLAGS) $(INCLUDES) -J$(MOD_DIR) -I$(MOD_DIR) -c $< -o $@
 
 $(OBJ_DIR)/main.o: $(SRC_DIR)/main.f90 $(OBJ_DIR)/constants.o $(OBJ_DIR)/indata.o $(OBJ_DIR)/dielectric.o $(OBJ_DIR)/poisson_solver.o $(OBJ_DIR)/utils.o $(OBJ_DIR)/writers.o $(OBJ_DIR)/schrodinger.o

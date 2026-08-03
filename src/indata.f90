@@ -24,8 +24,16 @@ MODULE INDATA
     REAL*8 :: L_trapped
     REAL*8 :: m1
     REAL*8 :: m2
-    INTEGER*4 :: norbital
     REAL*8 :: sigma ! size fo the initial gaussian
+
+    ! kp parameters
+    REAL*8 :: L
+    REAL*8 :: M
+    REAL*8 :: N
+    REAL*8 :: dSO
+    REAL*8 :: dTetra
+    REAL*8 :: F_z
+    INTEGER*4 :: norbital
 
     NAMELIST /calculation_parameters/             &
        &  Nx,                                     &
@@ -49,8 +57,16 @@ MODULE INDATA
     &  L_trapped,                                &
     &  m1,                                       &
     &  m2,                                       &
-    &  norbital,                                 &
     &  sigma
+
+NAMELIST /kp_parameters/                        &
+    &  L,                                       &
+    &  M,                                       &
+    &  N,                                       &
+    &  dSO,                                     &
+    &  dTetra,                                      &
+    &  F_z,                                     &
+    &  norbital
 
 
     CONTAINS
@@ -86,6 +102,13 @@ MODULE INDATA
         norbital = 0
         sigma = 0.0
 
+        L = 0.0
+        M = 0.0
+        N = 0.0
+        dSO = 0.0
+        dTetra = 0.0
+        F_z = 0.0
+
         READ (33, NML=calculation_parameters)
         dx = dx * fnm2au
         dz_1D = dz_1D * fnm2au
@@ -96,6 +119,14 @@ MODULE INDATA
         n0_trapped = n0_trapped * 1.0e13*fne2D2au
         L_trapped = L_trapped * fnm2au
         sigma = sigma * fnm2au
+
+        READ (33, NML=kp_parameters)
+        L = L * feV2au * (0.1 * fnm2au)**2
+        M = M * feV2au * (0.1 * fnm2au)**2
+        N = N * feV2au * (0.1 * fnm2au)**2
+        dSO = dSO * feV2au
+        dTetra = dTetra * feV2au
+        F_z = F_z * feV2au/(0.1 * fnm2au)
 
     END SUBROUTINE GET_INDATA
 

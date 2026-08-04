@@ -678,28 +678,28 @@ CONTAINS
         ! print*, "E=",maxval(abs(electric_field))
 
         !!!!!!!!!!!!! zapis do pliku !!!!!!!!!!!!!!!!!!
-        OPEN(1, FILE="./data/charge_trapped.dat")
+        OPEN(1, FILE="./data/charge_trapped_init.dat")
         do iz=1,nz
             z=(iz-1)*dz
             write(1, '(200e20.12)') z/fnm2au, charge_trapped(iz)/fne2au   
         enddo
         CLOSE(1)
 
-        OPEN(1, FILE="./data/potential_trapped.dat")
+        OPEN(1, FILE="./data/potential_trapped_init.dat")
         do iz=1,nz
         z=(iz-1)*dz
         write(1, '(200e20.12)') z/fnm2au, -pot_hartree(iz)/feV2au 
         enddo
         CLOSE(1)
 
-        OPEN(1, FILE="./data/electric_field_trapped.dat")
+        OPEN(1, FILE="./data/electric_field_trapped_init.dat")
         do iz=1,nz
         z=(iz-1)*dz
         write(1, '(200e20.12)') z/fnm2au, electric_field(iz)*fnm2au/feV2au 
         enddo
         CLOSE(1)
 
-        OPEN(1, FILE="./data/epsilon_trapped.dat")
+        OPEN(1, FILE="./data/epsilon_trapped_init.dat")
         do iz=1,nz
             z=(iz-1)*dz
             write(1, '(200e20.12)') z/fnm2au, permitivity(eps_0,electric_field(iz))
@@ -772,7 +772,7 @@ CONTAINS
             density_z(iz) = density_z(iz) * dx * dx
         enddo
 
-        CALL INTERPOLATE_1D(density, nz3d, dz3D, density_fine, nz, dz)
+        CALL INTERPOLATE_1D(density_z, nz3d, dz3D, density_fine, nz, dz)
 
         !trapped electrons in STO (note that there are eletrons !!! )
         do iz=1,nz

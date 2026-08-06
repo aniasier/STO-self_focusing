@@ -774,10 +774,18 @@ CONTAINS
 
         CALL INTERPOLATE_1D(density_z, nz3d, dz3D, density_fine, nz, dz)
 
+        print *, sum(density_fine)*dz
+        print *, sum(charge_trapped)*dz
+
         !trapped electrons in STO (note that there are eletrons !!! )
         do iz=1,nz
             z=(iz-1)*dz
             charge_total(iz)=(n0_trapped/L_trapped)*dexp(-z/L_trapped) - density_fine(iz)
+        enddo
+
+        do iz=1,nz
+            z=(iz-1)*dz
+            charge_trapped(iz)=(n0_trapped/L_trapped)*dexp(-z/L_trapped)
         enddo
 
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -890,10 +898,17 @@ CONTAINS
         ! print*, "E=",maxval(abs(electric_field))
 
         !!!!!!!!!!!!! zapis do pliku !!!!!!!!!!!!!!!!!!
-        OPEN(1, FILE="./data/charge_trapped.dat")
+        OPEN(1, FILE="./data/charge_total.dat")
         do iz=1,nz
             z=(iz-1)*dz
             write(1, '(200e20.12)') z/fnm2au, charge_total(iz)/fne2au   
+        enddo
+        CLOSE(1)
+
+        OPEN(1, FILE="./data/charge_trapped.dat")
+        do iz=1,nz
+            z=(iz-1)*dz
+            write(1, '(200e20.12)') z/fnm2au, charge_trapped(iz)/fne2au   
         enddo
         CLOSE(1)
 
@@ -901,6 +916,13 @@ CONTAINS
         do iz=1,nz
         z=(iz-1)*dz
         write(1, '(200e20.12)') z/fnm2au, -pot_hartree(iz)/feV2au 
+        enddo
+        CLOSE(1)
+
+        OPEN(1, FILE="./data/density_fine.dat")
+        do iz=1,nz
+        z=(iz-1)*dz
+        write(1, '(200e20.12)') z/fnm2au, density_fine(iz) 
         enddo
         CLOSE(1)
 

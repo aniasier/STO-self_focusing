@@ -165,4 +165,65 @@ MODULE UTILS
 
     END SUBROUTINE INTERPOLATE_1D
 
+    SUBROUTINE GET_ELECTRON_POTENTIAL_Z(density, nx, ny, nz3d, &
+                                    dx, dz3D, z_fine, nz_fine, &
+                                    x_center, y_center, potential_e)
+
+    IMPLICIT NONE
+
+    INTEGER, INTENT(IN) :: nx, ny, nz3d, nz_fine
+    REAL*8, INTENT(IN) :: density(nx,ny,nz3d)
+    REAL*8, INTENT(IN) :: dx, dz3D
+    REAL*8, INTENT(IN) :: z_fine(nz_fine)
+    REAL*8, INTENT(IN) :: x_center, y_center
+
+    REAL*8, INTENT(OUT) :: potential_e(nz_fine)
+
+    INTEGER :: i, j, k, iz
+    REAL*8 :: x, y, z
+    REAL*8 :: rx, ry, rz, r
+    REAL*8 :: dV
+    REAL*8 :: eps_reg
+
+    dV = dx*dx*dz3D
+
+    ! skala regularizacji dla komórki źródłowej
+    eps_reg = dx/2.d0
+
+    potential_e(:) = 0.d0
+
+    DO iz = 1, nz_fine
+
+        DO k = 1, nz3d
+
+            z = (k-1)*dz3D
+
+            DO j = 1, ny
+
+                y = (j-1)*dx
+
+                DO i = 1, nx
+
+                    x = (i-1)*dx
+
+                    rx = x - x_center
+                    ry = y - y_center
+                    rz = z - z_fine(iz)
+
+                    r = sqrt(rx*rx + ry*ry + rz*rz)
+
+                    ! regularizacja osobliwości
+                    r = sqrt(r*r + eps_reg*eps_reg)
+
+                    potential_e(iz) = potential_e(iz) &
+                        - density(i,j,k)*dV/r
+
+                END DO
+            END DO
+        END DO
+
+    END DO
+
+END SUBROUTINE GET_ELECTRON_POTENTIAL_Z
+
 END MODULE UTILS

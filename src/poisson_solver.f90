@@ -716,7 +716,7 @@ CONTAINS
     END SUBROUTINE POISSON_ZDIRECTION_INIT
 
     SUBROUTINE POISSON_ZDIRECTION_PLUS_POTENTIAL(n0_trapped, L_trapped, eps_0,  nz, nx, ny, dz, dx, charge_trapped,&
-         electric_field, density, nz3d, dz3D, pot_hartree)
+         electric_field, density, nz3d, dz3D, pot_hartree, x0, y0)
         IMPLICIT NONE
 
         REAL*8, intent(in) :: eps_0
@@ -733,6 +733,7 @@ CONTAINS
         REAL*8, INTENT(OUT) :: charge_trapped(nz)
         REAL*8, INTENT(OUT) :: electric_field(nz)
         REAL*8, INTENT(OUT) :: pot_hartree(nz)
+        REAL*8, INTENT(IN) :: x0, y0
 
         !zmienne pomocnicze
         INTEGER :: i, iz, j
@@ -740,6 +741,8 @@ CONTAINS
         REAL*8 :: z
         REAL*8 :: density_fine(nz)
         REAL*8 :: charge_total(nz)
+        REAL*8 :: potential_electron(nz)
+        REAL*8 :: z_fine(nz)
 
         !PARDISO       
         INTEGER, ALLOCATABLE :: nmat(:)
@@ -780,14 +783,23 @@ CONTAINS
         !trapped electrons in STO (note that there are eletrons !!! )
         do iz=1,nz
             z=(iz-1)*dz
-            charge_total(iz)=(n0_trapped/L_trapped)*dexp(-z/L_trapped) - density_fine(iz)
+            charge_total(iz)=(n0_trapped/L_trapped)*dexp(-z/L_trapped)
         enddo
 
         do iz=1,nz
             z=(iz-1)*dz
             charge_trapped(iz)=(n0_trapped/L_trapped)*dexp(-z/L_trapped)
         enddo
+        DO iz = 1, nz
+            z_fine(iz) = (iz-1)*dz
+        END DO
 
+        CALL GET_ELECTRON_POTENTIAL_Z( &
+            density, nx, ny, nz3d, &
+            dx, dz3D, &
+            z_fine, nz, &
+            x0, y0, &
+            potential_electron)
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         !!!!!!! rozwiazanie rownania Poissona dla pierwszej iteracji z charge_trapped !!!!!!!!!!!
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -868,10 +880,11 @@ CONTAINS
 
         !wektor wyrazow wolnych
         DO i=2,nz-1
-        b_prd(i, 1)= -(-charge_total(i))*dz*dz/epsilon0/eps_0
+        b_prd(i, 1)= -(-charge_total(i))*dz*dz/epsilon0/eps_0 
         ENDDO
         !warunki brzegowe
         b_prd( 1, 1 )= -charge_bc*dz/epsilon0/eps_0
+        ! b_prd(1,1) = 0.d0
         b_prd( nz, 1 )= 0.0
 
         CALL pardiso (pt_prd, maxfct_prd, mnum_prd, mtype_prd, phase_prd,      &
@@ -883,7 +896,7 @@ CONTAINS
         END IF
 
         do iz=1,nz
-            pot_hartree(iz)=x_prd(iz,1)
+            pot_hartree(iz)=x_prd(iz,1) - potential_electron(iz)
         enddo
         do iz=2,nz-1
             electric_field(iz)=-(pot_hartree(iz+1)-pot_hartree(iz-1))/(2.d0*dz)
@@ -923,6 +936,13 @@ CONTAINS
         do iz=1,nz
         z=(iz-1)*dz
         write(1, '(200e20.12)') z/fnm2au, density_fine(iz) 
+        enddo
+        CLOSE(1)
+
+        OPEN(1, FILE="./data/density_coarse.dat")
+        do iz=1,nz3d
+        z=(iz-1)*dz3d
+        write(1, '(200e20.12)') z/fnm2au, density_z(iz) 
         enddo
         CLOSE(1)
 

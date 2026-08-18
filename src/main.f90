@@ -20,6 +20,14 @@ PROGRAM MAIN
     REAL*8, ALLOCATABLE :: density_full(:, :, :)
     REAL*8, ALLOCATABLE :: init_psi(:,:,:)
     REAL*8, ALLOCATABLE :: final_psi(:,:,:)
+    ! for hamiltoanian
+    REAL*8, ALLOCATABLE :: Ham_z(:, :)
+    REAL*8, ALLOCATABLE :: Energies_z(:)
+    REAL*8, ALLOCATABLE :: Wavefunction_z(:, :)
+    REAL*8, ALLOCATABLE :: dfz(:,:)
+    REAL*8, ALLOCATABLE :: d2fz(:,:)
+
+
     REAL*8 :: x0, y0, z0 ! gauss centering
     INTEGER*4 :: i, j, k, iz, iter
     REAL*8 :: z, V0, sigma_v
@@ -46,6 +54,11 @@ PROGRAM MAIN
     ALLOCATE(charge_trapped3D(nx, ny, nz_3d))
     ALLOCATE(init_psi(nx, ny, nz_3d))
     ALLOCATE(final_psi(nx, ny, nz_3d))
+    ALLOCATE(Ham_z(nz_3d, nz_3d))
+    ALLOCATE(Energies_z(nz_3d))
+    ALLOCATE(Wavefunction_z(nz_3d, nstate_1))
+    ALLOCATE(dfz(Nz_3d, nstate_1))
+    ALLOCATE(d2fz(Nz_3d, nstate_1))
     
     potential_eps0(:,:,:) =0.0d0
     x0 = (nx-1)*dx/2.0d0
@@ -66,6 +79,15 @@ PROGRAM MAIN
     CALL WRITE_DENSITY_CROSS_SECTION_Y(density, Nx, Ny, Nz_3d, dx, z0_indx, './data/density_init_crossection_y.dat')
     ! stage 3: poisson in 3d with changing dielectric function
     energy_old = 1.d99
+
+    ! PREP FOR SCHORDINGER
+    CALL GET_Z_HAMILTONIAN(Ham_z, nz_3d, dz_3d)
+    CALL solve_eigenproblem(Ham_z, Energies_z, nz_3d)
+    Wavefunction_z = Ham_z(:, 1:nstate_1)
+    CALL WRITE_Z_WAVEFUNCTION(Ham_z, nz_3d, nstate_1, nz_3d, dz_3d, "./data/Psi_z")
+    CALL WRITE_ENERGIES(Energies_z, nstate_1, "./data/Energies_z.dat")
+    CALL GET_DFZ(Wavefunction_z, dfz, nstate_1, nz_3d, dz_3d)
+    CALL GET_D2FZ(Wavefunction_z,dfz, d2fz, nstate_1, Nz_3d, dz_3d)
     ! charge_trapped3D(:,:,:) = 0.0d0
     DO iter = 1, MAX_ITER_SCF
         potential(:,:,:) =0.0d0

@@ -1,6 +1,17 @@
 MODULE UTILS
     USE CONSTANTS
     IMPLICIT NONE
+    ! interface do dsyev !!!!
+    interface
+        subroutine dsyev(jobz, uplo, n, a, lda, w, work, lwork, info) bind(C,name="dsyev_")
+            character(len=1), intent(in) :: jobz, uplo
+            integer, intent(in) :: n, lda, lwork
+            real*8, intent(inout) :: a(lda,*)
+            real*8, intent(out) :: w(*), work(*)
+            integer, intent(out) :: info
+        end subroutine
+    end interface
+
     CONTAINS
 
     function initial_psi(x,y,z,x0,y0,z0,sigma) result(val)
@@ -224,6 +235,34 @@ MODULE UTILS
 
     END DO
 
-END SUBROUTINE GET_ELECTRON_POTENTIAL_Z
+    END SUBROUTINE GET_ELECTRON_POTENTIAL_Z
+
+
+    subroutine solve_eigenproblem(H, w, num)
+        real*8, intent(inout) :: H(:,:)
+        real*8, intent(out) :: w(:)
+        integer, intent(in) :: num
+        real*8, allocatable :: work(:)
+        integer :: lwork, info
+
+        lwork = -1
+        allocate(work(1))
+        call dsyev('V', 'U', num, H, num, w, work, lwork, info)
+
+        if (info /= 0) then
+            print *, "Błąd przy query workspace, info=", info
+            stop
+        end if
+
+        lwork = int(work(1))
+        deallocate(work)
+        allocate(work(lwork))
+
+        call dsyev('V', 'U', num, H, num, w, work, lwork, info)
+
+        if ( info /= 0) then
+            print *, 'Błąd, info=', info
+        end if
+    end subroutine solve_eigenproblem
 
 END MODULE UTILS

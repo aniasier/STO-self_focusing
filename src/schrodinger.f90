@@ -1,6 +1,7 @@
 MODULE SCHRODINGER
     USE UTILS
     USE CONSTANTS
+    USE INDATA
     IMPLICIT NONE
     CONTAINS
 
@@ -114,6 +115,62 @@ MODULE SCHRODINGER
         final_psi = psi
         final_energy = energy
     END SUBROUTINE
+
+    SUBROUTINE GET_Z_HAMILTONIAN(Ham_z, Nz, dz)
+        IMPLICIT NONE
+        REAL*8, INTENT(OUT) :: Ham_z(Nz,Nz)
+        INTEGER*4, INTENT(IN) :: Nz
+        REAL*8, INTENT(IN) :: dz
+        INTEGER*4 :: i
+        
+        Ham_z(:,:) = 0.0d0
+        DO i = 1, Nz
+            Ham_z(i,i) = 2.0d0* L / (dz**2) + F_z * i * dz
+            IF (i < Nz) THEN
+                Ham_z(i,i+1) = -L / (dz**2)
+                Ham_z(i+1,i) = -L / (dz**2)
+            END IF         
+
+        END DO
+
+    END SUBROUTINE GET_Z_HAMILTONIAN
+
+     SUBROUTINE GET_DFZ(Wavefunction_z, dfz, nstates, Nz, dz)
+        IMPLICIT NONE
+        REAL*8, INTENT(IN) :: Wavefunction_z(Nz, nstates)
+        REAL*8, INTENT(OUT) :: dfz(Nz, nstates)
+        INTEGER*4, INTENT(IN) :: nstates, Nz
+        REAL*8, INTENT(IN) :: dz
+        INTEGER*4 :: i, n
+
+        dfz(:,:) = 0.0d0
+        DO n = 1, nstates
+            DO i = 2, Nz-1
+                dfz(i,n) = (Wavefunction_z(i+1,n) - Wavefunction_z(i-1,n))/(2.0d0*dz)
+            END DO
+            dfz(1,n) = (Wavefunction_z(2,n) - Wavefunction_z(1,n))/(dz)
+            dfz(Nz,n) = (Wavefunction_z(Nz,n) - Wavefunction_z(Nz-1,n))/(dz)
+        END DO       
+    END SUBROUTINE GET_DFZ
+
+    SUBROUTINE GET_D2FZ(Wavefunction_z, dfz, d2fz, nstates, Nz, dz)
+        IMPLICIT NONE
+        REAL*8, INTENT(IN) :: Wavefunction_z(Nz, nstates), dfz(Nz, nstates)
+        REAL*8, INTENT(OUT) :: d2fz(Nz, nstates)
+        INTEGER*4, INTENT(IN) :: nstates, Nz
+        REAL*8, INTENT(IN) :: dz
+        INTEGER*4 :: i, n
+
+        d2fz(:,:) = 0.0d0
+        DO n = 1, nstates
+            DO i = 2, Nz-1
+                d2fz(i,n) = (Wavefunction_z(i-1,n) - 2.d0*Wavefunction_z(i,n) + Wavefunction_z(i+1,n))/(dz**2)
+            END DO
+            d2fz(1,n) = (dfz(2,n) - dfz(1,n))/(dz)
+            d2fz(Nz,n) = (dfz(Nz,n) - dfz(Nz-1,n))/(dz)
+        END DO       
+    END SUBROUTINE GET_D2FZ
+
 
 
 END MODULE SCHRODINGER

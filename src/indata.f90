@@ -34,6 +34,8 @@ MODULE INDATA
     REAL*8 :: dTetra
     REAL*8 :: F_z
     INTEGER*4 :: norbital
+    INTEGER*4 :: nstate_1
+    INTEGER*4 :: nstate_2
 
     NAMELIST /calculation_parameters/             &
        &  Nx,                                     &
@@ -52,21 +54,23 @@ MODULE INDATA
        & dt,                                      &
        & MAX_TIME
 
-    NAMELIST /physical_parameters/               &
-    &  n0_trapped,                               &
-    &  L_trapped,                                &
-    &  m1,                                       &
-    &  m2,                                       &
+    NAMELIST /physical_parameters/                &
+    &  n0_trapped,                                &
+    &  L_trapped,                                 &
+    &  m1,                                        &
+    &  m2,                                        &
     &  sigma
 
-NAMELIST /kp_parameters/                        &
-    &  L,                                       &
-    &  M,                                       &
-    &  N,                                       &
-    &  dSO,                                     &
-    &  dTetra,                                      &
-    &  F_z,                                     &
-    &  norbital
+NAMELIST /kp_parameters/                          &
+    &  L,                                         &
+    &  M,                                         &
+    &  N,                                         &
+    &  dSO,                                       &
+    &  dTetra,                                    &
+    &  F_z,                                       &
+    &  norbital,                                  &
+    &  nstate_1,                                  &
+    &  nstate_2
 
 
     CONTAINS
@@ -108,6 +112,9 @@ NAMELIST /kp_parameters/                        &
         dSO = 0.0
         dTetra = 0.0
         F_z = 0.0
+
+        nstate_1 = 0
+        nstate_2 = 0
 
         READ (33, NML=calculation_parameters)
         dx = dx * fnm2au

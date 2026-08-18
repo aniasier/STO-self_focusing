@@ -300,4 +300,46 @@ MODULE WRITERS
     END SUBROUTINE WRITE_POTENTIAL_CROSS_SECTION_Y
 
 
+    SUBROUTINE WRITE_Z_WAVEFUNCTION(Psi_z, psi_size, nstates, Nz, dz, filename)
+        IMPLICIT NONE
+        INTEGER*4, INTENT(IN) :: psi_size, nstates, Nz
+        REAL*8, INTENT(IN) :: Psi_z(Nz, psi_size)
+        REAL*8, INTENT(IN) :: dz
+        CHARACTER(LEN=*), INTENT(IN) :: filename
+        CHARACTER(LEN=200) :: filename_state
+        INTEGER*4 :: iz, is
+        PRINT*, 'filename=', filename
+
+        DO is = 1, nstates
+            WRITE(filename_state, '(A, I0, A)') TRIM(filename)//'_n', is, '.dat'
+            OPEN (1, FILE=filename_state)
+            WRITE(1,*) '#z[nm]  Re(Psi)'
+            DO iz = 1, Nz
+                WRITE(1,'(2E20.8)', ADVANCE='NO') iz*dz/fnm2au, Psi_z(iz,is)
+                WRITE(1,*)
+            END DO
+
+            CLOSE(1)
+        END DO
+    END SUBROUTINE WRITE_Z_WAVEFUNCTION
+
+
+    SUBROUTINE WRITE_ENERGIES(Energies, nstates, filename)
+        IMPLICIT NONE
+        REAL*8, INTENT(IN) :: Energies(nstates)
+        INTEGER*4, INTENT(IN) :: nstates
+        CHARACTER(LEN=*), INTENT(IN) :: filename
+        INTEGER*4 :: i
+
+
+        OPEN(unit = 1, FILE= filename, FORM = "FORMATTED", ACTION = "WRITE")
+        WRITE(1,*) '#No. sate [-]   Energy [meV]'
+        DO i = 1, nstates
+            WRITE(1,*) i, Energies(i) / feV2au * 1e3
+        END DO
+        CLOSE(1)
+
+    END SUBROUTINE WRITE_ENERGIES
+
+
 END MODULE WRITERS

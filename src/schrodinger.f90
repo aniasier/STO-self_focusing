@@ -171,6 +171,58 @@ MODULE SCHRODINGER
         END DO       
     END SUBROUTINE GET_D2FZ
 
+    SUBROUTINE GET_KP_HAMILTONIAN()
+        IMPLICIT NONE
 
+        ! (i, j, k)
+        fijk(1,1) = -2*L/(dx**2) + M * (-2/dy**2 + -2/dz**2)
+
+        fijk(2,2) = -2*L/(dy**2) + M * (-2/dx**2 + -2/dz**2)
+
+        fijk(3,3) = -2*L/(dz**2) + M * (-2/dx**2 + -2/dy**2)
+        
+        ! (i+1, j, k)
+        fiplusjk(1,1) = L/(dx**2)
+
+        fiplusjk(2,2) = M/(dx**2)
+
+        fiplusjk(3,3) = M/(dx**2)
+
+        ! (i-1, j, k)
+        fiminusjk(1,1) = L/(dx**2)
+
+        fiminusjk(2,2) = M/(dx**2)
+
+        fiminusjk(3,3) = M/(dx**2)
+
+        ! (i, j+1, k)
+        fijplusk(1,1) = M/(dy**2)
+
+        fijplusk(2,2) = L/(dy**2)
+
+        fijplusk(3,3) = M/(dy**2)
+
+        ! (i, j-1, k)
+        fijminusk(1,1) = M/(dy**2)
+
+        fijminusk(2,2) = L/(dy**2)
+
+        fijminusk(3,3) = M/(dy**2)
+
+        ! (i, j, k+1)
+        fijkplus(1,1) = M/(dz**2)
+        
+        fijkplus(2,2) = M/(dz**2)
+
+        fijkplus(3,3) = L/(dz**2)
+
+        ! (i, j, k-1)
+        fijkminus(1,1) = M/(dz**2)
+
+        fijkminus(2,2) = M/(dz**2)
+
+        fijkminus(3,3) = L/(dz**2)
+
+        
 
 END MODULE SCHRODINGER

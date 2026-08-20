@@ -6,6 +6,7 @@ PROGRAM MAIN
     USE UTILS
     USE WRITERS
     USE SCHRODINGER
+    USE KP
     IMPLICIT NONE
     REAL*8 :: eps_0
     REAL*8, ALLOCATABLE :: charge_trapped(:)
@@ -18,8 +19,8 @@ PROGRAM MAIN
     REAL*8, ALLOCATABLE :: potential_eps0(:, :, :)
     REAL*8, ALLOCATABLE :: density(:, :, :)
     REAL*8, ALLOCATABLE :: density_full(:, :, :)
-    REAL*8, ALLOCATABLE :: init_psi(:,:,:)
-    REAL*8, ALLOCATABLE :: final_psi(:,:,:)
+    REAL*8, ALLOCATABLE :: init_psi(:,:,:,:)
+    REAL*8, ALLOCATABLE :: final_psi(:,:,:,:)
     ! for hamiltoanian
     REAL*8, ALLOCATABLE :: Ham_z(:, :)
     REAL*8, ALLOCATABLE :: Energies_z(:)
@@ -52,8 +53,8 @@ PROGRAM MAIN
     ALLOCATE(density(nx, ny,nz_3d))
     ALLOCATE(density_full(nx, ny,nz_3d))
     ALLOCATE(charge_trapped3D(nx, ny, nz_3d))
-    ALLOCATE(init_psi(nx, ny, nz_3d))
-    ALLOCATE(final_psi(nx, ny, nz_3d))
+    ALLOCATE(init_psi(norbital,nx, ny, nz_3d))
+    ALLOCATE(final_psi(norbital,nx, ny, nz_3d))
     ALLOCATE(Ham_z(nz_3d, nz_3d))
     ALLOCATE(Energies_z(nz_3d))
     ALLOCATE(Wavefunction_z(nz_3d, nstate_1))
@@ -70,8 +71,8 @@ PROGRAM MAIN
     ! stage 2: dielectric
     CALL GET_EPSILON(potential_z, eps_0, nx, ny, nz_1d, dz_1d, nz_3d, dz_3d, epsilon)
     CALL GET_CHARGE_TRAPPED3D(charge_trapped3D, charge_trapped, nx, ny, nz_3d)
-    CALL GET_INIT_PSI(init_psi, Nx, Ny, Nz_3d, x0, y0, z0, sigma, dx, dz_3d)
-    CALL GET_DENSITY(density, init_psi, nx, ny, nz_3d)
+    CALL GET_INIT_PSI_KP(init_psi, Nx, Ny, Nz_3d, x0, y0, z0, sigma, dx, dz_3d)
+    CALL GET_DENSITY_KP(density, init_psi, nx, ny, nz_3d)
     CALL WRITE_DENSITY_2D_XY(density, nx, ny, nz_3d, dx,dz_3d, './data/density_init.dat')
     ! CALL WRITE_DENSITY_2D_XY_SLICE(density, nx, ny, nz, dx, dz, z0_indx, './data/density_init_slice.dat')
     CALL WRITE_DENSITY_CROSS_SECTION(density, Nx, Ny, Nz_3d, dz_3d, './data/density_init_crossection.dat')
@@ -81,13 +82,13 @@ PROGRAM MAIN
     energy_old = 1.d99
 
     ! PREP FOR SCHORDINGER
-    CALL GET_Z_HAMILTONIAN(Ham_z, nz_3d, dz_3d)
-    CALL solve_eigenproblem(Ham_z, Energies_z, nz_3d)
-    Wavefunction_z = Ham_z(:, 1:nstate_1)
-    CALL WRITE_Z_WAVEFUNCTION(Ham_z, nz_3d, nstate_1, nz_3d, dz_3d, "./data/Psi_z")
-    CALL WRITE_ENERGIES(Energies_z, nstate_1, "./data/Energies_z.dat")
-    CALL GET_DFZ(Wavefunction_z, dfz, nstate_1, nz_3d, dz_3d)
-    CALL GET_D2FZ(Wavefunction_z,dfz, d2fz, nstate_1, Nz_3d, dz_3d)
+    ! CALL GET_Z_HAMILTONIAN(Ham_z, nz_3d, dz_3d)
+    ! CALL solve_eigenproblem(Ham_z, Energies_z, nz_3d)
+    ! Wavefunction_z = Ham_z(:, 1:nstate_1)
+    ! CALL WRITE_Z_WAVEFUNCTION(Ham_z, nz_3d, nstate_1, nz_3d, dz_3d, "./data/Psi_z")
+    ! CALL WRITE_ENERGIES(Energies_z, nstate_1, "./data/Energies_z.dat")
+    ! CALL GET_DFZ(Wavefunction_z, dfz, nstate_1, nz_3d, dz_3d)
+    ! CALL GET_D2FZ(Wavefunction_z,dfz, d2fz, nstate_1, Nz_3d, dz_3d)
     ! charge_trapped3D(:,:,:) = 0.0d0
     DO iter = 1, MAX_ITER_SCF
         potential(:,:,:) =0.0d0
@@ -104,23 +105,23 @@ PROGRAM MAIN
         ! stage 4: poisson with epsilon NOT changing
         CALL Poisson(potential_eps0, density, eps_local, alfa, Nx, Ny, Nz_3d, dx, dz_3d, tol, MAX_ITER)
         potential = potential - potential_eps0
-    
-        CALL IMAGINARY_TIME(potential, Nx, Ny, Nz_3d, dx, dz_3d, dt, MAX_TIME, m1, m2, init_psi, final_psi, energy, tol)
-        CALL GET_DENSITY(density, final_psi, nx, ny, nz_3d)
-        ! WRITE(filename, '(A,I0,A)') './data/density3D_', iter, '.dat'
-        ! CALL WRITE_DENSITY_2D_XY(density, Nx, Ny, Nz_3d, dx, dz_3d, filename)
+        PRINT*, "start schrodinger"
+        CALL IMAGINARY_TIME_KP(potential, Nx, Ny, Nz_3d, dx,dx, dz_3d, dt, MAX_TIME, init_psi, final_psi, energy, tol)
+        CALL GET_DENSITY_KP(density, final_psi, nx, ny, nz_3d)
+        WRITE(filename, '(A,I0,A)') './data/density3D_', iter, '.dat'
+        CALL WRITE_DENSITY_2D_XY(density, Nx, Ny, Nz_3d, dx, dz_3d, filename)
 
-        ! WRITE(filename, '(A,I0,A)') './data/density_final_slice_', iter, '.dat'
-        ! CALL WRITE_POTENTIAL_2D_XY_SLICE(density, nx, ny, nz_3d, dx, dz_3d, z0_indx, filename)
+        WRITE(filename, '(A,I0,A)') './data/density_final_slice_', iter, '.dat'
+        CALL WRITE_POTENTIAL_2D_XY_SLICE(density, nx, ny, nz_3d, dx, dz_3d, z0_indx, filename)
 
-        ! WRITE(filename, '(A,I0,A)') './data/density_final_crossection_', iter, '.dat'
-        ! CALL WRITE_DENSITY_CROSS_SECTION(density, Nx, Ny, Nz_3d, dz_3d, filename)
+        WRITE(filename, '(A,I0,A)') './data/density_final_crossection_', iter, '.dat'
+        CALL WRITE_DENSITY_CROSS_SECTION(density, Nx, Ny, Nz_3d, dz_3d, filename)
 
-        ! WRITE(filename, '(A,I0,A)') './data/density_final_crossection_x_', iter, '.dat'
-        ! CALL WRITE_DENSITY_CROSS_SECTION_X(density, Nx, Ny, Nz_3d, dx, z0_indx, filename)
+        WRITE(filename, '(A,I0,A)') './data/density_final_crossection_x_', iter, '.dat'
+        CALL WRITE_DENSITY_CROSS_SECTION_X(density, Nx, Ny, Nz_3d, dx, z0_indx, filename)
 
-        ! WRITE(filename, '(A,I0,A)') './data/density_final_crossection_y_', iter, '.dat'
-        ! CALL WRITE_DENSITY_CROSS_SECTION_Y(density, Nx, Ny, Nz_3d, dx, z0_indx, filename)
+        WRITE(filename, '(A,I0,A)') './data/density_final_crossection_y_', iter, '.dat'
+        CALL WRITE_DENSITY_CROSS_SECTION_Y(density, Nx, Ny, Nz_3d, dx, z0_indx, filename)
         if (abs(energy-energy_old) < tol_scf) then
                 print*, "Converged after", iter, "iterations"
                 exit

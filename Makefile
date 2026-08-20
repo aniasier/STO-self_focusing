@@ -28,7 +28,8 @@ SRC = $(SRC_DIR)/writers.f90 \
       $(SRC_DIR)/poisson_solver.f90 \
       $(SRC_DIR)/main.f90 \
       $(SRC_DIR)/schrodinger.f90 \
-      $(SRC_DIR)/indata.f90
+      $(SRC_DIR)/indata.f90 \
+      $(SRC_DIR)/kp.f90
 
 # Object files
 OBJ = $(OBJ_DIR)/constants.o \
@@ -38,7 +39,8 @@ OBJ = $(OBJ_DIR)/constants.o \
       $(OBJ_DIR)/poisson_solver.o \
       $(OBJ_DIR)/main.o \
       $(OBJ_DIR)/schrodinger.o \
-      $(OBJ_DIR)/indata.o
+      $(OBJ_DIR)/indata.o \
+      $(OBJ_DIR)/kp.o
 
 # --- Rules ---
 
@@ -69,10 +71,13 @@ $(OBJ_DIR)/dielectric.o: $(SRC_DIR)/dielectric.f90 $(OBJ_DIR)/constants.o $(OBJ_
 $(OBJ_DIR)/schrodinger.o: $(SRC_DIR)/schrodinger.f90 $(OBJ_DIR)/utils.o $(OBJ_DIR)/constants.o $(OBJ_DIR)/indata.o
 	$(FC) $(FFLAGS) $(INCLUDES) -J$(MOD_DIR) -I$(MOD_DIR) -c $< -o $@
 
+$(OBJ_DIR)/kp.o: $(SRC_DIR)/kp.f90 $(OBJ_DIR)/utils.o $(OBJ_DIR)/constants.o $(OBJ_DIR)/indata.o
+	$(FC) $(FFLAGS) $(INCLUDES) -J$(MOD_DIR) -I$(MOD_DIR) -c $< -o $@
+
 $(OBJ_DIR)/poisson_solver.o: $(SRC_DIR)/poisson_solver.f90 $(OBJ_DIR)/constants.o $(OBJ_DIR)/dielectric.o $(OBJ_DIR)/utils.o
 	$(FC) $(FFLAGS) $(INCLUDES) -J$(MOD_DIR) -I$(MOD_DIR) -c $< -o $@
 
-$(OBJ_DIR)/main.o: $(SRC_DIR)/main.f90 $(OBJ_DIR)/constants.o $(OBJ_DIR)/indata.o $(OBJ_DIR)/dielectric.o $(OBJ_DIR)/poisson_solver.o $(OBJ_DIR)/utils.o $(OBJ_DIR)/writers.o $(OBJ_DIR)/schrodinger.o
+$(OBJ_DIR)/main.o: $(SRC_DIR)/main.f90 $(OBJ_DIR)/constants.o $(OBJ_DIR)/indata.o $(OBJ_DIR)/dielectric.o $(OBJ_DIR)/poisson_solver.o $(OBJ_DIR)/utils.o $(OBJ_DIR)/writers.o $(OBJ_DIR)/schrodinger.o $(OBJ_DIR)/kp.o
 	$(FC) $(FFLAGS) $(INCLUDES) -J$(MOD_DIR) -I$(MOD_DIR) -c $< -o $@
 
 DEBUG_FLAGS = -O0 -g -cpp -DDEBUG \

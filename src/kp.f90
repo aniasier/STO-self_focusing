@@ -86,7 +86,7 @@ MODULE KP
         INTEGER*4, INTENT(IN) :: Nx, Ny, Nz, MAX_TIME
         REAL*8, ALLOCATABLE :: psi(:,:,:,:)
         REAL*8, ALLOCATABLE :: psi_new(:,:,:,:)
-        REAL*8, ALLOCATABLE :: ham(:,:,:,:)
+        ! REAL*8, ALLOCATABLE :: ham(:,:,:,:)
         INTEGER*4 :: i,j,k, iter
         REAL*8 :: energy, energy_old, norm
         REAL*8 :: kinetic_energy, potential_energy
@@ -119,17 +119,18 @@ MODULE KP
 
         ALLOCATE(psi(norbital, Nx, Ny, Nz))
         ALLOCATE(psi_new(norbital, Nx, Ny, Nz))
-        ALLOCATE(ham(norbital, Nx, Ny, Nz))
-        ham(:,:,:,:) = 0.0d0
+        ! ALLOCATE(ham(norbital, Nx, Ny, Nz))
+
         psi = init_psi
         energy_old = 1d100
         DO iter =1, MAX_TIME 
-            ham(:,:,:,:) = 0.0d0
-        !$omp parallel do collapse(3) schedule(static)
+
+        !$omp parallel do collapse(3) schedule(static)&
+        !$omp private(h1,h2,h3,h4,h5,h6)
         DO k=2, Nz-1
             DO  j=2, Ny-1
                 DO i=2, Nx-1
-                    ham(1,i,j,k) = A * psi(1,i,j,k)&
+                    h1 = A * psi(1,i,j,k)&
                     -lx * (psi(1,i+1,j,k) + psi(1,i-1,j,k))&
                     -my * (psi(1,i,j+1,k) + psi(1,i,j-1,k))&
                     -mz * (psi(1,i,j,k+1) + psi(1,i,j,k-1))&
@@ -137,52 +138,58 @@ MODULE KP
                     +n2 * (-psi(3,i+1,j,k+1)-psi(3,i-1,j,k-1)+psi(3,i+1,j,k-1)+psi(3,i-1,j,k+1))&
                     + potential(i,j,k) * psi(1,i,j,k)
 
-                    ham(2,i,j,k) = B * psi(2,i,j,k)&
+                    psi_new(1,i,j,k) = psi(1,i,j,k) - dt*h1
+
+                    h2 = B * psi(2,i,j,k)&
                     -mx * (psi(2,i+1,j,k) + psi(2,i-1,j,k))&
                     -ly * (psi(2,i,j+1,k) + psi(2,i,j-1,k))&
                     -lz * (psi(2,i,j,k+1) + psi(2,i,j,k-1))&
                     +n1 * (-psi(1,i+1,j+1,k)-psi(1,i-1,j-1,k)+psi(1,i+1,j-1,k)+psi(1,i-1,j+1,k))&
                     +n3 * (-psi(3,i,j+1,k+1)-psi(3,i,j-1,k-1)+psi(3,i,j-1,k+1)+psi(3,i,j+1,k-1))&
                     + potential(i,j,k) * psi(2,i,j,k)
+                    psi_new(2,i,j,k) = psi(2,i,j,k) - dt*h2
 
-                    ham(3,i,j,k) = C * psi(3,i,j,k)&
+                    h3 = C * psi(3,i,j,k)&
                     -mx * (psi(3,i+1,j,k) + psi(3,i-1,j,k))&
                     -my * (psi(3,i,j+1,k) + psi(3,i,j-1,k))&
                     -mz * (psi(3,i,j,k+1) + psi(3,i,j,k-1))&
                     +n2 * (-psi(1,i+1,j,k+1)-psi(1,i-1,j,k-1)+psi(1,i+1,j,k-1)+psi(1,i-1,j,k+1))&
                     +n3 * (-psi(2,i,j+1,k+1)-psi(2,i,j-1,k-1)+psi(2,i,j-1,k+1)+psi(2,i,j+1,k-1))&
                     + potential(i,j,k) * psi(3,i,j,k)
+                    psi_new(3,i,j,k) = psi(3,i,j,k) - dt*h3
 
 
-                    ham(4,i,j,k) = A * psi(4,i,j,k)&
+                    h4 = A * psi(4,i,j,k)&
                     -lx * (psi(4,i+1,j,k) + psi(4,i-1,j,k))&
                     -my * (psi(4,i,j+1,k) + psi(4,i,j-1,k))&
                     -mz * (psi(4,i,j,k+1) + psi(4,i,j,k-1))&
                     +n1 * (-psi(5,i+1,j+1,k)-psi(5,i-1,j-1,k)+psi(5,i+1,j-1,k)+psi(5,i-1,j+1,k))&
                     +n2 * (-psi(6,i+1,j,k+1)-psi(6,i-1,j,k-1)+psi(6,i+1,j,k-1)+psi(6,i-1,j,k+1))&
                     + potential(i,j,k) * psi(4,i,j,k)
+                    psi_new(4,i,j,k) = psi(4,i,j,k) - dt*h4
 
-                    ham(5,i,j,k) = B * psi(5,i,j,k)&
+                    h5 = B * psi(5,i,j,k)&
                     -mx * (psi(5,i+1,j,k) + psi(5,i-1,j,k))&
                     -ly * (psi(5,i,j+1,k) + psi(5,i,j-1,k))&
                     -lz * (psi(5,i,j,k+1) + psi(5,i,j,k-1))&
                     +n1 * (-psi(4,i+1,j+1,k)-psi(4,i-1,j-1,k)+psi(4,i+1,j-1,k)+psi(4,i-1,j+1,k))&
                     +n3 * (-psi(6,i,j+1,k+1)-psi(6,i,j-1,k-1)+psi(6,i,j-1,k+1)+psi(6,i,j+1,k-1))&
                     + potential(i,j,k) * psi(5,i,j,k)
+                    psi_new(5,i,j,k) = psi(5,i,j,k) - dt*h5
 
-                    ham(6,i,j,k) = C * psi(6,i,j,k)&
+
+                    h6 = C * psi(6,i,j,k)&
                     -mx * (psi(6,i+1,j,k) + psi(6,i-1,j,k))&
                     -my * (psi(6,i,j+1,k) + psi(6,i,j-1,k))&
                     -mz * (psi(6,i,j,k+1) + psi(6,i,j,k-1))&
                     +n2 * (-psi(4,i+1,j,k+1)-psi(4,i-1,j,k-1)+psi(4,i+1,j,k-1)+psi(4,i-1,j,k+1))&
                     +n3 * (-psi(5,i,j+1,k+1)-psi(5,i,j-1,k-1)+psi(5,i,j-1,k+1)+psi(5,i,j+1,k-1))&
                     + potential(i,j,k) * psi(6,i,j,k)
+                    psi_new(6,i,j,k) = psi(5,i,j,k) - dt*h6
                 END DO
             END DO
         END DO
         !$omp end parallel do
-            psi_new = psi - dt*ham
-            norm = 0.d0
             psi_new(:,1,:,:)  = 0.d0
             psi_new(:,Nx,:,:) = 0.d0
             psi_new(:,:,1,:)  = 0.d0
@@ -190,7 +197,6 @@ MODULE KP
             psi_new(:,:,:,1)  = 0.d0
             psi_new(:,:,:,Nz) = 0.d0
             energy = 0.d0
-            ham(:,:,:,:) = 0.0d0
             norm = 0.d0
 
         !$omp parallel do collapse(3) schedule(static) reduction(+:norm)

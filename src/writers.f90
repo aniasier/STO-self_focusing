@@ -71,6 +71,74 @@ MODULE WRITERS
         
     END SUBROUTINE WRITE_DENSITY_2D_XY
 
+    SUBROUTINE WRITE_DENSITY_2D_XZ(density, Nx, Ny, Nz, dx, dz, filename)
+        IMPLICIT NONE
+        INTEGER*4, INTENT(IN) :: Nx, Ny, Nz
+        REAL*8, INTENT(IN) :: density(Nx, Ny, Nz), dx, dz
+        CHARACTER(LEN=*), INTENT(IN) :: filename
+        INTEGER*4 :: i, j, k, unit
+        REAL*8 :: x, y, val
+        
+        ! Open file for writing
+        OPEN(NEWUNIT=unit, FILE=TRIM(filename), STATUS='REPLACE', ACTION='WRITE')
+        
+        ! Write header comment for clarity
+        WRITE(unit, '(A)') '# 2D Density Projection onto X-Z plane'
+        WRITE(unit, '(A)') '# x z integrated_density'
+        
+        ! Write 2D projection (integrate over z)
+        DO i = 1, Nx
+            DO k = 1, Nz
+                val = 0.0d0
+                ! Integrate over z dimension
+                DO j = 1, Ny
+                    val = val + density(i,j,k) * dx
+                END DO
+                x = (i-1) * dx / fnm2au
+                y = (k-1) * dz / fnm2au
+                WRITE(unit, '(3G25.16)') x, y, val
+            END DO
+            WRITE(unit, '(A)') ''  ! Blank line for gnuplot
+        END DO
+        
+        CLOSE(unit)
+        
+    END SUBROUTINE WRITE_DENSITY_2D_XZ
+    
+    SUBROUTINE WRITE_DENSITY_2D_ZY(density, Nx, Ny, Nz, dx, dz, filename)
+        IMPLICIT NONE
+        INTEGER*4, INTENT(IN) :: Nx, Ny, Nz
+        REAL*8, INTENT(IN) :: density(Nx, Ny, Nz), dx, dz
+        CHARACTER(LEN=*), INTENT(IN) :: filename
+        INTEGER*4 :: i, j, k, unit
+        REAL*8 :: x, y, val
+        
+        ! Open file for writing
+        OPEN(NEWUNIT=unit, FILE=TRIM(filename), STATUS='REPLACE', ACTION='WRITE')
+        
+        ! Write header comment for clarity
+        WRITE(unit, '(A)') '# 2D Density Projection onto Y-Z plane'
+        WRITE(unit, '(A)') '# y z integrated_density'
+        
+        ! Write 2D projection (integrate over z)
+        DO j = 1, Ny
+            DO k = 1, Nz
+                val = 0.0d0
+                ! Integrate over z dimension
+                DO i = 1, Nx
+                    val = val + density(i,j,k) * dx
+                END DO
+                x = (j-1) * dx / fnm2au
+                y = (k-1) * dz / fnm2au
+                WRITE(unit, '(3G25.16)') x, y, val
+            END DO
+            WRITE(unit, '(A)') ''  ! Blank line for gnuplot
+        END DO
+        
+        CLOSE(unit)
+        
+    END SUBROUTINE WRITE_DENSITY_2D_ZY
+
     SUBROUTINE WRITE_POTENTIAL_2D_XY(potential, Nx, Ny, Nz, dx,dz, filename)
         IMPLICIT NONE
         INTEGER*4, INTENT(IN) :: Nx, Ny, Nz
@@ -105,6 +173,75 @@ MODULE WRITERS
         
     END SUBROUTINE WRITE_POTENTIAL_2D_XY
 
+
+    SUBROUTINE WRITE_POTENTIAL_2D_XZ(potential, Nx, Ny, Nz, dx,dz, filename)
+        IMPLICIT NONE
+        INTEGER*4, INTENT(IN) :: Nx, Ny, Nz
+        REAL*8, INTENT(IN) :: potential(Nx, Ny, Nz), dx, dz
+        CHARACTER(LEN=*), INTENT(IN) :: filename
+        INTEGER*4 :: i, j, k, unit
+        REAL*8 :: x, y, val
+        
+        ! Open file for writing
+        OPEN(NEWUNIT=unit, FILE=TRIM(filename), STATUS='REPLACE', ACTION='WRITE')
+        
+        ! Write header comment for clarity
+        WRITE(unit, '(A)') '# 2D Potential Projection onto X-Z plane'
+        WRITE(unit, '(A)') '# x z integrated_potential'
+        
+        ! Write 2D projection (integrate over z)
+        DO i = 1, Nx
+            DO k = 1, Nz
+                val = 0.0d0
+                ! Integrate over z dimension
+                DO j = 1, Ny
+                    val = val + potential(i,j,k) * dx
+                END DO
+                x = (i-1) * dx / fnm2au
+                y = (k-1) * dz / fnm2au
+                WRITE(unit, '(3ES30.16E3)') x, y, val / feV2au
+            END DO
+            WRITE(unit, '(200e20.12)')
+        END DO
+        
+        CLOSE(unit)
+        
+    END SUBROUTINE WRITE_POTENTIAL_2D_XZ
+
+    SUBROUTINE WRITE_POTENTIAL_2D_ZY(potential, Nx, Ny, Nz, dx, dz, filename)
+        IMPLICIT NONE
+        INTEGER*4, INTENT(IN) :: Nx, Ny, Nz
+        REAL*8, INTENT(IN) :: potential(Nx, Ny, Nz), dx, dz
+        CHARACTER(LEN=*), INTENT(IN) :: filename
+        INTEGER*4 :: i, j, k, unit
+        REAL*8 :: x, y, val
+        
+        ! Open file for writing
+        OPEN(NEWUNIT=unit, FILE=TRIM(filename), STATUS='REPLACE', ACTION='WRITE')
+        
+        ! Write header comment for clarity
+        WRITE(unit, '(A)') '# 2D Potential Projection onto Z-Y plane'
+        WRITE(unit, '(A)') '# z y integrated_potential'
+        
+        ! Write 2D projection (integrate over z)
+        DO j = 1, Ny
+            DO k = 1, Nz
+                val = 0.0d0
+                ! Integrate over z dimension
+                DO i = 1, Nx
+                    val = val + potential(i,j,k) * dx
+                END DO
+                x = (k-1) * dz / fnm2au
+                y = (j-1) * dx / fnm2au
+                WRITE(unit, '(3ES30.16E3)') x, y, val / feV2au
+            END DO
+            WRITE(unit, '(200e20.12)')
+        END DO
+        
+        CLOSE(unit)
+        
+    END SUBROUTINE WRITE_POTENTIAL_2D_ZY
+
     SUBROUTINE WRITE_POTENTIAL_2D_XY_SLICE(potential, Nx, Ny, Nz, dx, dz, z0_indx, filename)
         IMPLICIT NONE
         INTEGER*4, INTENT(IN) :: Nx, Ny, Nz, z0_indx
@@ -136,6 +273,165 @@ MODULE WRITERS
         CLOSE(unit)
         
     END SUBROUTINE WRITE_POTENTIAL_2D_XY_SLICE
+
+    SUBROUTINE WRITE_POTENTIAL_2D_XZ_SLICE(potential, Nx, Ny, Nz, dx, dz, y0_indx, filename)
+        IMPLICIT NONE
+        INTEGER*4, INTENT(IN) :: Nx, Ny, Nz, y0_indx
+        REAL*8, INTENT(IN) :: potential(Nx, Ny, Nz), dx, dz
+        CHARACTER(LEN=*), INTENT(IN) :: filename
+        INTEGER*4 :: i, j, k, unit
+        REAL*8 :: x, y, val
+        
+        ! Open file for writing
+        OPEN(NEWUNIT=unit, FILE=TRIM(filename), STATUS='REPLACE', ACTION='WRITE')
+        
+        ! Write header comment for clarity
+        WRITE(unit, '(A)') '# 2D Potential Projection onto X-Z plane'
+        WRITE(unit, '(A)') '# x z potential at y0'
+        
+        ! Write 2D projection (integrate over y)
+        DO i = 1, Nx
+            DO k = 1, Nz
+                ! val = 0.0d0
+                ! Integrate over y dimension
+                val = potential(i,y0_indx,k)
+                x = (i-1) * dx / fnm2au
+                y = (k-1) * dz / fnm2au
+                WRITE(unit, '(3ES30.16E3)') x, y, val / feV2au
+            END DO
+            WRITE(unit, '(200e20.12)')
+        END DO
+        
+        CLOSE(unit)
+        
+    END SUBROUTINE WRITE_POTENTIAL_2D_XZ_SLICE
+
+    SUBROUTINE WRITE_POTENTIAL_2D_ZY_SLICE(potential, Nx, Ny, Nz, dx, dz, x0_indx, filename)
+        IMPLICIT NONE
+        INTEGER*4, INTENT(IN) :: Nx, Ny, Nz, x0_indx
+        REAL*8, INTENT(IN) :: potential(Nx, Ny, Nz), dx, dz
+        CHARACTER(LEN=*), INTENT(IN) :: filename
+        INTEGER*4 :: i, j, k, unit
+        REAL*8 :: x, y, val
+        
+        ! Open file for writing
+        OPEN(NEWUNIT=unit, FILE=TRIM(filename), STATUS='REPLACE', ACTION='WRITE')
+        
+        ! Write header comment for clarity
+        WRITE(unit, '(A)') '# 2D Potential Projection onto Z-Y plane'
+        WRITE(unit, '(A)') '# z y potential at x0'
+        
+        ! Write 2D projection (integrate over x)
+        DO i = 1, Nx
+            DO j = 1, Ny
+                ! Integrate over x dimension
+                val = potential(x0_indx,j,k)
+                x = (k-1) * dz / fnm2au
+                y = (j-1) * dx / fnm2au
+                WRITE(unit, '(3ES30.16E3)') x, y, val / feV2au
+            END DO
+            WRITE(unit, '(200e20.12)')
+        END DO
+        
+        CLOSE(unit)
+        
+    END SUBROUTINE WRITE_POTENTIAL_2D_ZY_SLICE
+
+
+    SUBROUTINE WRITE_DENSITY_2D_XY_SLICE(density, Nx, Ny, Nz, dx, dz, z0_indx, filename)
+        IMPLICIT NONE
+        INTEGER*4, INTENT(IN) :: Nx, Ny, Nz, z0_indx
+        REAL*8, INTENT(IN) :: density(Nx, Ny, Nz), dx, dz
+        CHARACTER(LEN=*), INTENT(IN) :: filename
+        INTEGER*4 :: i, j, k, unit
+        REAL*8 :: x, y, val
+        
+        ! Open file for writing
+        OPEN(NEWUNIT=unit, FILE=TRIM(filename), STATUS='REPLACE', ACTION='WRITE')
+        
+        ! Write header comment for clarity
+        WRITE(unit, '(A)') '# 2D Density Projection onto X-Y plane'
+        WRITE(unit, '(A)') '# x y density at z0'
+        
+        ! Write 2D projection (integrate over z)
+        DO i = 1, Nx
+            DO j = 1, Ny
+                val = 0.0d0
+                ! Integrate over z dimension
+                val = val + density(i,j,z0_indx)
+                x = (i-1) * dx / fnm2au
+                y = (j-1) * dx / fnm2au
+                WRITE(unit, '(3ES30.16E3)') x, y, val
+            END DO
+            WRITE(unit, '(200e20.12)')
+        END DO
+        
+        CLOSE(unit)
+        
+    END SUBROUTINE WRITE_DENSITY_2D_XY_SLICE
+
+    SUBROUTINE WRITE_DENSITY_2D_XZ_SLICE(density, Nx, Ny, Nz, dx, dz, y0_indx, filename)
+        IMPLICIT NONE
+        INTEGER*4, INTENT(IN) :: Nx, Ny, Nz, y0_indx
+        REAL*8, INTENT(IN) :: density(Nx, Ny, Nz), dx, dz
+        CHARACTER(LEN=*), INTENT(IN) :: filename
+        INTEGER*4 :: i, j, k, unit
+        REAL*8 :: x, y, val
+        
+        ! Open file for writing
+        OPEN(NEWUNIT=unit, FILE=TRIM(filename), STATUS='REPLACE', ACTION='WRITE')
+        
+        ! Write header comment for clarity
+        WRITE(unit, '(A)') '# 2D Density Projection onto X-Z plane'
+        WRITE(unit, '(A)') '# x z density at y0'
+        
+        ! Write 2D projection (integrate over y)
+        DO i = 1, Nx
+            DO k = 1, Nz
+                ! val = 0.0d0
+                ! Integrate over y dimension
+                val = density(i,y0_indx,k)
+                x = (i-1) * dx / fnm2au
+                y = (k-1) * dz / fnm2au
+                WRITE(unit, '(3ES30.16E3)') x, y, val
+            END DO
+            WRITE(unit, '(200e20.12)')
+        END DO
+        
+        CLOSE(unit)
+        
+    END SUBROUTINE WRITE_DENSITY_2D_XZ_SLICE
+
+    SUBROUTINE WRITE_DENSITY_2D_ZY_SLICE(density, Nx, Ny, Nz, dx, dz, x0_indx, filename)
+        IMPLICIT NONE
+        INTEGER*4, INTENT(IN) :: Nx, Ny, Nz, x0_indx
+        REAL*8, INTENT(IN) :: density(Nx, Ny, Nz), dx, dz
+        CHARACTER(LEN=*), INTENT(IN) :: filename
+        INTEGER*4 :: i, j, k, unit
+        REAL*8 :: x, y, val
+        
+        ! Open file for writing
+        OPEN(NEWUNIT=unit, FILE=TRIM(filename), STATUS='REPLACE', ACTION='WRITE')
+        
+        ! Write header comment for clarity
+        WRITE(unit, '(A)') '# 2D Density Projection onto Z-Y plane'
+        WRITE(unit, '(A)') '# z y density at x0'
+        
+        ! Write 2D projection (integrate over x)
+        DO k = 1, Nz
+            DO j = 1, Ny
+                ! Integrate over x dimension
+                val = density(x0_indx,j,k)
+                x = (k-1) * dz / fnm2au
+                y = (j-1) * dx / fnm2au
+                WRITE(unit, '(3ES30.16E3)') x, y, val 
+            END DO
+            WRITE(unit, '(200e20.12)')
+        END DO
+        
+        CLOSE(unit)
+        
+    END SUBROUTINE WRITE_DENSITY_2D_ZY_SLICE
 
     SUBROUTINE WRITE_POTENTIAL_CROSS_SECTION(potential, Nx, Ny, Nz, dz, filename)
         IMPLICIT NONE

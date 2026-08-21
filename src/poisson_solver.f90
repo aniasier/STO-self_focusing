@@ -716,7 +716,7 @@ CONTAINS
     END SUBROUTINE POISSON_ZDIRECTION_INIT
 
     SUBROUTINE POISSON_ZDIRECTION_PLUS_POTENTIAL(n0_trapped, L_trapped, eps_0,  nz, nx, ny, dz, dx, charge_trapped,&
-         electric_field, density, nz3d, dz3D, pot_hartree, x0, y0)
+         electric_field, density, nz3d, dz3D, pot_hartree, x0, y0, iter)
         IMPLICIT NONE
 
         REAL*8, intent(in) :: eps_0
@@ -734,6 +734,7 @@ CONTAINS
         REAL*8, INTENT(OUT) :: electric_field(nz)
         REAL*8, INTENT(OUT) :: pot_hartree(nz)
         REAL*8, INTENT(IN) :: x0, y0
+        INTEGER*4, INTENT(IN) :: iter
 
         !zmienne pomocnicze
         INTEGER :: i, iz, j
@@ -757,6 +758,7 @@ CONTAINS
         REAL*8, ALLOCATABLE :: b_prd(:,:)
         REAL*8, ALLOCATABLE :: x_prd(:,:)
         INTEGER :: maxnonzeroprd, nelem
+        CHARACTER(LEN=50) :: filename
 
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         !!!!!!!!!!!!!!!!!!!!!!!!!!!! tablica charge_trapped !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -911,49 +913,56 @@ CONTAINS
         ! print*, "E=",maxval(abs(electric_field))
 
         !!!!!!!!!!!!! zapis do pliku !!!!!!!!!!!!!!!!!!
-        OPEN(1, FILE="./data/charge_total.dat")
+        WRITE(filename, '(A,I0,A)') './data/charge_total_', iter, '.dat'
+        OPEN(1, FILE=filename)
         do iz=1,nz
             z=(iz-1)*dz
             write(1, '(200e20.12)') z/fnm2au, charge_total(iz)/fne2au   
         enddo
         CLOSE(1)
 
-        OPEN(1, FILE="./data/charge_trapped.dat")
+        WRITE(filename, '(A,I0,A)') './data/charge_trapped_', iter, '.dat'
+        OPEN(1, FILE=filename)
         do iz=1,nz
             z=(iz-1)*dz
             write(1, '(200e20.12)') z/fnm2au, charge_trapped(iz)/fne2au   
         enddo
         CLOSE(1)
 
-        OPEN(1, FILE="./data/potential_trapped.dat")
+        WRITE(filename, '(A,I0,A)') './data/potential_trapped_', iter, '.dat'
+        OPEN(1, FILE=filename)
         do iz=1,nz
         z=(iz-1)*dz
         write(1, '(200e20.12)') z/fnm2au, -pot_hartree(iz)/feV2au 
         enddo
         CLOSE(1)
 
-        OPEN(1, FILE="./data/density_fine.dat")
+        WRITE(filename, '(A,I0,A)') './data/density_fine_', iter, '.dat'
+        OPEN(1, FILE=filename)
         do iz=1,nz
         z=(iz-1)*dz
         write(1, '(200e20.12)') z/fnm2au, density_fine(iz) 
         enddo
         CLOSE(1)
 
-        OPEN(1, FILE="./data/density_coarse.dat")
+        WRITE(filename, '(A,I0,A)') './data/density_coarse_', iter, '.dat'
+        OPEN(1, FILE=filename)
         do iz=1,nz3d
         z=(iz-1)*dz3d
         write(1, '(200e20.12)') z/fnm2au, density_z(iz) 
         enddo
         CLOSE(1)
 
-        OPEN(1, FILE="./data/electric_field_trapped.dat")
+        WRITE(filename, '(A,I0,A)') './data/electric_field_trapped_', iter, '.dat'
+        OPEN(1, FILE=filename)
         do iz=1,nz
         z=(iz-1)*dz
         write(1, '(200e20.12)') z/fnm2au, electric_field(iz)*fnm2au/feV2au 
         enddo
         CLOSE(1)
 
-        OPEN(1, FILE="./data/epsilon_trapped.dat")
+        WRITE(filename, '(A,I0,A)') './data/epsilon_trapped_', iter, '.dat'
+        OPEN(1, FILE=filename)
         do iz=1,nz
             z=(iz-1)*dz
             write(1, '(200e20.12)') z/fnm2au, permitivity(eps_0,electric_field(iz))

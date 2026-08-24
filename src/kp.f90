@@ -185,7 +185,7 @@ MODULE KP
                     +n2 * (-psi(4,i+1,j,k+1)-psi(4,i-1,j,k-1)+psi(4,i+1,j,k-1)+psi(4,i-1,j,k+1))&
                     +n3 * (-psi(5,i,j+1,k+1)-psi(5,i,j-1,k-1)+psi(5,i,j-1,k+1)+psi(5,i,j+1,k-1))&
                     + potential(i,j,k) * psi(6,i,j,k)
-                    psi_new(6,i,j,k) = psi(5,i,j,k) - dt*h6
+                    psi_new(6,i,j,k) = psi(6,i,j,k) - dt*h6
                 END DO
             END DO
         END DO

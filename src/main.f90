@@ -75,6 +75,7 @@ PROGRAM MAIN
     CALL WRITE_DENSITY_CROSS_SECTION_Y(density, Nx, Ny, Nz_3d, dx, z0_indx, './data/density_crossection_y_init.dat')
     ! stage 3: poisson in 3d with changing dielectric function
     energy_old = 1.d99
+    eps_local = epsilon(ceiling((nx-1)/2.0d0), ceiling((ny-1)/2.0d0), z0_indx)
     ! charge_trapped3D(:,:,:) = 0.0d0
     DO iter = 1, MAX_ITER_SCF
         potential(:,:,:) =0.0d0
@@ -87,7 +88,7 @@ PROGRAM MAIN
                 END DO
             END DO
         END DO
-        eps_local = epsilon(ceiling((nx-1)/2.0d0), ceiling((ny-1)/2.0d0), z0_indx)  
+        ! eps_local = epsilon(ceiling((nx-1)/2.0d0), ceiling((ny-1)/2.0d0), z0_indx)  
         ! stage 4: poisson with epsilon NOT changing
         CALL Poisson(potential_eps0, density, eps_local, alfa, Nx, Ny, Nz_3d, dx, dz_3d, tol, MAX_ITER)
         potential = potential - potential_eps0

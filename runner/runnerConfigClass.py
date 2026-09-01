@@ -11,11 +11,11 @@ class RunnerConfig:
                 """\
                 #!/bin/bash
                 ##### Amount of cores per task
-                #SBATCH --cpus-per-task=1
+                #SBATCH --cpus-per-task=8
                 ##### Partition name
                 #SBATCH -p cpu
                 ##### Name of job in queuing system
-                #SBATCH --job-name=STO
+                #SBATCH --job-name=STO-kp
                 #SBATCH --output=\"output.out\"    # Path to the standard output and error files relative to the working directory
                 """
                 ),
@@ -76,14 +76,14 @@ class RunnerConfig:
         parser = f90nml.Parser()
         params_nml = parser.reads(
             f"&calculation_parameters \
-                Nx=100, \
-                Ny=100, \
+                Nx=80, \
+                Ny=80, \
                 Nz_1D=5001, \
                 Nz_3D=201, \
                 dx=1.0, \
                 dz_1D=0.02, \
                 dz_3D=0.5, \
-                z0_indx=10, \
+                z0_indx=20, \
                 MAX_ITER=10000, \
                 MAX_ITER_SCF=40, \
                 tol=1.0e-9, \
@@ -96,7 +96,16 @@ class RunnerConfig:
                 L_trapped=15.0, \
                 m1=0.28, \
                 m2=3.5, \
-                norbital=1, \
-                sigma=1.0/"
+                sigma=5.0/ \
+            &kp_parameters \
+                L=0.61042, \
+                M=9.732, \
+                N=-1.6164, \
+                dSO=28.5e-3, \
+                dTetra=2.1e-3, \
+                F_z=0.1e-3, \
+                norbital=6, \
+                nstate_1=6, \
+                nstate_2=4/"
         )
         return params_nml

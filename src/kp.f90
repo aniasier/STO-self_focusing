@@ -100,9 +100,9 @@ MODULE KP
         mx = M/(dx**2)
         my = M/(dy**2)
         mz = M/(dz**2)
-        n1 = N/(2*dx*dy)
-        n2 = N/(2*dx*dz)
-        n3 = N/(2*dz*dy)
+        n1 = 0.01*N/(4*dx*dy)
+        n2 = 0.01*N/(4*dx*dz)
+        n3 = 0.01*N/(4*dz*dy)
         energy = 0.0d0
         kinetic_energy = 0.0d0
         potential_energy = 0.0d0
@@ -293,7 +293,7 @@ MODULE KP
                     abs(energy-energy_old)/feV2au
             end if
             energy_old = energy
-                psi = psi_new
+            psi = psi_new
                 ! PRINT*, "Iteration:", iter, "Energy:", energy/feV2au
         END DO
         final_psi = psi

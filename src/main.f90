@@ -115,6 +115,7 @@ PROGRAM MAIN
         ! stage 4: poisson with epsilon NOT changing
         CALL Poisson(potential_eps0, density, eps_local, alfa, Nx, Ny, Nz_3d, dx, dz_3d, tol, MAX_ITER)
         potential = potential - potential_eps0
+        potential(:,:,:) =0.0d0
         PRINT*, "start schrodinger"
         CALL IMAGINARY_TIME_KP(potential, Nx, Ny, Nz_3d, dx,dx, dz_3d, dt, MAX_TIME, init_psi, final_psi, energy, tol)
         CALL GET_DENSITY_KP(density, final_psi, nx, ny, nz_3d)

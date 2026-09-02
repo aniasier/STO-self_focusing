@@ -94,54 +94,54 @@ PROGRAM MAIN
         potential = potential - potential_eps0
     
         CALL IMAGINARY_TIME(potential, Nx, Ny, Nz_3d, dx, dz_3d, dt, MAX_TIME, m1, m2, init_psi, final_psi, energy, tol)
-        CALL GET_DENSITY(density, final_psi, nx, ny, nz_3d)
-        WRITE(filename, '(A,I0,A)') './data/density_xy_', iter, '.dat'
-        CALL WRITE_DENSITY_2D_XY(density, Nx, Ny, Nz_3d, dx, dz_3d, filename)
-        WRITE(filename, '(A,I0,A)') './data/density_xz_', iter, '.dat'
-        CALL WRITE_DENSITY_2D_XZ(density, Nx, Ny, Nz_3d, dx, dz_3d, filename)
-        WRITE(filename, '(A,I0,A)') './data/density_zy_', iter, '.dat'
-        CALL WRITE_DENSITY_2D_ZY(density, Nx, Ny, Nz_3d, dx, dz_3d, filename)
+        ! CALL GET_DENSITY(density, final_psi, nx, ny, nz_3d)
+        ! WRITE(filename, '(A,I0,A)') './data/density_xy_', iter, '.dat'
+        ! CALL WRITE_DENSITY_2D_XY(density, Nx, Ny, Nz_3d, dx, dz_3d, filename)
+        ! WRITE(filename, '(A,I0,A)') './data/density_xz_', iter, '.dat'
+        ! CALL WRITE_DENSITY_2D_XZ(density, Nx, Ny, Nz_3d, dx, dz_3d, filename)
+        ! WRITE(filename, '(A,I0,A)') './data/density_zy_', iter, '.dat'
+        ! CALL WRITE_DENSITY_2D_ZY(density, Nx, Ny, Nz_3d, dx, dz_3d, filename)
 
-        WRITE(filename, '(A,I0,A)') './data/density_xy_slice_', iter, '.dat'
-        CALL WRITE_DENSITY_2D_XY_SLICE(density, Nx, Ny, Nz_3d, dx, dz_3d, z0_indx, filename)
-        WRITE(filename, '(A,I0,A)') './data/density_xz_slice_', iter, '.dat'
-        CALL WRITE_DENSITY_2D_XZ_SLICE(density, Nx, Ny, Nz_3d, dx, dz_3d, y0_indx, filename)
-        WRITE(filename, '(A,I0,A)') './data/density_zy_slice_', iter, '.dat'
-        CALL WRITE_DENSITY_2D_ZY_SLICE(density, Nx, Ny, Nz_3d, dx, dz_3d, x0_indx, filename)
+        ! WRITE(filename, '(A,I0,A)') './data/density_xy_slice_', iter, '.dat'
+        ! CALL WRITE_DENSITY_2D_XY_SLICE(density, Nx, Ny, Nz_3d, dx, dz_3d, z0_indx, filename)
+        ! WRITE(filename, '(A,I0,A)') './data/density_xz_slice_', iter, '.dat'
+        ! CALL WRITE_DENSITY_2D_XZ_SLICE(density, Nx, Ny, Nz_3d, dx, dz_3d, y0_indx, filename)
+        ! WRITE(filename, '(A,I0,A)') './data/density_zy_slice_', iter, '.dat'
+        ! CALL WRITE_DENSITY_2D_ZY_SLICE(density, Nx, Ny, Nz_3d, dx, dz_3d, x0_indx, filename)
 
-        WRITE(filename, '(A,I0,A)') './data/potential_xy_slice_', iter, '.dat'
-        CALL WRITE_POTENTIAL_2D_XY_SLICE(potential, nx, ny, nz_3d, dx, dz_3d, z0_indx, filename)
-        WRITE(filename, '(A,I0,A)') './data/potential_xz_slice_', iter, '.dat'
-        CALL WRITE_POTENTIAL_2D_XZ_SLICE(potential, nx, ny, nz_3d, dx, dz_3d, y0_indx, filename)
-        WRITE(filename, '(A,I0,A)') './data/potential_zy_slice_', iter, '.dat'
-        CALL WRITE_POTENTIAL_2D_ZY_SLICE(potential, nx, ny, nz_3d, dx, dz_3d, x0_indx, filename)
+        ! WRITE(filename, '(A,I0,A)') './data/potential_xy_slice_', iter, '.dat'
+        ! CALL WRITE_POTENTIAL_2D_XY_SLICE(potential, nx, ny, nz_3d, dx, dz_3d, z0_indx, filename)
+        ! WRITE(filename, '(A,I0,A)') './data/potential_xz_slice_', iter, '.dat'
+        ! CALL WRITE_POTENTIAL_2D_XZ_SLICE(potential, nx, ny, nz_3d, dx, dz_3d, y0_indx, filename)
+        ! WRITE(filename, '(A,I0,A)') './data/potential_zy_slice_', iter, '.dat'
+        ! CALL WRITE_POTENTIAL_2D_ZY_SLICE(potential, nx, ny, nz_3d, dx, dz_3d, x0_indx, filename)
 
-        WRITE(filename, '(A,I0,A)') './data/potential_xy_', iter, '.dat'
-        CALL WRITE_POTENTIAL_2D_XY(potential, Nx, Ny, Nz_3d, dx, dz_3d, filename)
-        WRITE(filename, '(A,I0,A)') './data/potential_xz_', iter, '.dat'
-        CALL WRITE_POTENTIAL_2D_XZ(potential, Nx, Ny, Nz_3d, dx, dz_3d, filename)
-        WRITE(filename, '(A,I0,A)') './data/potential_zy_', iter, '.dat'
-        CALL WRITE_POTENTIAL_2D_ZY(potential, Nx, Ny, Nz_3d, dx, dz_3d, filename)
+        ! WRITE(filename, '(A,I0,A)') './data/potential_xy_', iter, '.dat'
+        ! CALL WRITE_POTENTIAL_2D_XY(potential, Nx, Ny, Nz_3d, dx, dz_3d, filename)
+        ! WRITE(filename, '(A,I0,A)') './data/potential_xz_', iter, '.dat'
+        ! CALL WRITE_POTENTIAL_2D_XZ(potential, Nx, Ny, Nz_3d, dx, dz_3d, filename)
+        ! WRITE(filename, '(A,I0,A)') './data/potential_zy_', iter, '.dat'
+        ! CALL WRITE_POTENTIAL_2D_ZY(potential, Nx, Ny, Nz_3d, dx, dz_3d, filename)
 
-        WRITE(filename, '(A,I0,A)') './data/density_crossection_', iter, '.dat'
-        CALL WRITE_DENSITY_CROSS_SECTION(density, Nx, Ny, Nz_3d, dz_3d, filename)
+        ! WRITE(filename, '(A,I0,A)') './data/density_crossection_', iter, '.dat'
+        ! CALL WRITE_DENSITY_CROSS_SECTION(density, Nx, Ny, Nz_3d, dz_3d, filename)
 
-        WRITE(filename, '(A,I0,A)') './data/density_crossection_x_', iter, '.dat'
-        CALL WRITE_DENSITY_CROSS_SECTION_X(density, Nx, Ny, Nz_3d, dx, z0_indx, filename)
+        ! WRITE(filename, '(A,I0,A)') './data/density_crossection_x_', iter, '.dat'
+        ! CALL WRITE_DENSITY_CROSS_SECTION_X(density, Nx, Ny, Nz_3d, dx, z0_indx, filename)
 
-        WRITE(filename, '(A,I0,A)') './data/density_crossection_y_', iter, '.dat'
-        CALL WRITE_DENSITY_CROSS_SECTION_Y(density, Nx, Ny, Nz_3d, dx, z0_indx, filename)
+        ! WRITE(filename, '(A,I0,A)') './data/density_crossection_y_', iter, '.dat'
+        ! CALL WRITE_DENSITY_CROSS_SECTION_Y(density, Nx, Ny, Nz_3d, dx, z0_indx, filename)
 
    
 
-        WRITE(filename, '(A,I0,A)') './data/potential_crossection_', iter, '.dat'
-        CALL WRITE_POTENTIAL_CROSS_SECTION(potential, Nx, Ny, Nz_3d, dz_3d, filename)
+        ! WRITE(filename, '(A,I0,A)') './data/potential_crossection_', iter, '.dat'
+        ! CALL WRITE_POTENTIAL_CROSS_SECTION(potential, Nx, Ny, Nz_3d, dz_3d, filename)
 
-        WRITE(filename, '(A,I0,A)') './data/potential_crossection_x_', iter, '.dat'
-        CALL WRITE_POTENTIAL_CROSS_SECTION_X(potential, Nx, Ny, Nz_3d, dx, z0_indx, filename)
+        ! WRITE(filename, '(A,I0,A)') './data/potential_crossection_x_', iter, '.dat'
+        ! CALL WRITE_POTENTIAL_CROSS_SECTION_X(potential, Nx, Ny, Nz_3d, dx, z0_indx, filename)
 
-        WRITE(filename, '(A,I0,A)') './data/potential_crossection_y_', iter, '.dat'
-        CALL WRITE_POTENTIAL_CROSS_SECTION_Y(potential, Nx, Ny, Nz_3d, dx, z0_indx, filename)
+        ! WRITE(filename, '(A,I0,A)') './data/potential_crossection_y_', iter, '.dat'
+        ! CALL WRITE_POTENTIAL_CROSS_SECTION_Y(potential, Nx, Ny, Nz_3d, dx, z0_indx, filename)
         ! WRITE(filename, '(A,I0,A)') './data/density3D_', iter, '.dat'
         ! CALL WRITE_DENSITY_2D_XY(density, Nx, Ny, Nz_3d, dx, dz_3d, filename)
 

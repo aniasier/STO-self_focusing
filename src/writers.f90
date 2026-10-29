@@ -299,5 +299,28 @@ MODULE WRITERS
         
     END SUBROUTINE WRITE_POTENTIAL_CROSS_SECTION_Y
 
+    SUBROUTINE WRITE_FUNCTION(fun, N, dx, filename)
+        IMPLICIT NONE
+        INTEGER*4, INTENT(IN) :: N
+        REAL*8, INTENT(IN) :: fun(N), dx
+        CHARACTER(LEN=*), INTENT(IN) :: filename
+        INTEGER*4 :: i, unit
+        REAL*8 :: x, y, val
+        
+        ! Open file for writing
+        OPEN(NEWUNIT=unit, FILE=TRIM(filename), STATUS='REPLACE', ACTION='WRITE')
+        
+        ! Write header comment for clarity
+        WRITE(unit, '(A)') '# x potential'
+        
+        ! Write 2D projection (integrate over z)
+        DO i = 1, N
+            x = (i-1) * dx / fnm2au
+            WRITE(unit, '(2ES30.16E3)') x, fun(i) / feV2au
+        END DO
+        
+        CLOSE(unit)
+        
+    END SUBROUTINE WRITE_FUNCTION
 
 END MODULE WRITERS

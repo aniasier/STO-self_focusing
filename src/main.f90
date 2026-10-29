@@ -53,6 +53,7 @@ PROGRAM MAIN
     z0 = (z0_indx)*dz_3d
     ! stage 1: z direction
     CALL POISSON_ZDIRECTION_INIT(n0_trapped, L_trapped, eps_0, nz_1d, dz_1d, charge_trapped, electric_field, potential_z)
+    potential_z = potential_z-maxval(potential_z)
     ! CALL POISSON_ZDIRECTION(electric_field_new, electric_field, charge_trapped, eps_0,  nz, dz)
     ! stage 2: dielectric
     CALL GET_EPSILON(potential_z, eps_0, nx, ny, nz_1d, dz_1d, nz_3d, dz_3d, epsilon)
@@ -64,6 +65,7 @@ PROGRAM MAIN
     CALL WRITE_DENSITY_CROSS_SECTION(density, Nx, Ny, Nz_3d, dz_3d, './data/density_init_crossection.dat')
     CALL WRITE_DENSITY_CROSS_SECTION_X(density, Nx, Ny, Nz_3d, dx, z0_indx, './data/density_init_crossection_x.dat')
     CALL WRITE_DENSITY_CROSS_SECTION_Y(density, Nx, Ny, Nz_3d, dx, z0_indx, './data/density_init_crossection_y.dat')
+    CALL WRITE_FUNCTION(potential_z, nz_1d, dz_1d, './data/potential_init_crossection.dat')
     ! stage 3: poisson in 3d with changing dielectric function
     energy_old = 1.d99
     eps_local = epsilon(ceiling((nx-1)/2.0d0), ceiling((ny-1)/2.0d0), z0_indx)
@@ -113,7 +115,7 @@ PROGRAM MAIN
         ! CALL GET_EPSILON(potential_z, eps_0, nx, ny, nz_1d, dz_1d, nz_3d, dz_3d, epsilon)
     END DO
     CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz_3d, dx, dz_3d, './data/potential_final.dat')
-    ! CALL WRITE_POTENTIAL_2D_XY_SLICE(potential, nx, ny, nz, dx, dz, z0_indx, './data/potential_final_slice.dat')
+    CALL WRITE_POTENTIAL_2D_XY_SLICE(potential, nx, ny, nz_3d, dx, dz_3d, z0_indx, './data/potential_final_slice.dat')
     CALL WRITE_POTENTIAL_CROSS_SECTION(potential, Nx, Ny, Nz_3d, dz_3d, './data/potential_final_crossection.dat')
     CALL WRITE_POTENTIAL_CROSS_SECTION_X(potential, Nx, Ny, Nz_3d, dx, z0_indx, './data/potential_final_crossection_x.dat')
     CALL WRITE_POTENTIAL_CROSS_SECTION_Y(potential, Nx, Ny, Nz_3d, dx, z0_indx, './data/potential_final_crossection_y.dat')

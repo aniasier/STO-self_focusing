@@ -94,7 +94,7 @@ class RunnerConfig:
             &physical_parameters \
                 n0_trapped=5.0, \
                 L_trapped=15.0, \
-                m1=0.8, \
+                m1=0.7, \
                 m2=3.5, \
                 norbital=1, \
                 sigma=5.0/"

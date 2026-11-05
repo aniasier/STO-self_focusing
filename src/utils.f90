@@ -14,6 +14,22 @@ MODULE UTILS
 
     end function initial_psi
 
+    function initial_psi_v2(x,y,z,x0,y0,z0,sigma_x,sigma_y,sigma_z) result(val)
+        implicit none
+
+        double precision, intent(in) :: x, y, z
+        double precision, intent(in) :: x0, y0, z0
+        double precision, intent(in) :: sigma_x, sigma_y, sigma_z
+        double precision :: val
+
+        val = 1.0d0 / ((2.0d0*pi)**(3.0d0/2.0d0) * &
+            sigma_x*sigma_y*sigma_z) * &
+            exp(-((x-x0)**2/(2.0d0*sigma_x**2) + &
+                    (y-y0)**2/(2.0d0*sigma_y**2) + &
+                    (z-z0)**2/(2.0d0*sigma_z**2)))
+
+    end function initial_psi_v2
+
     SUBROUTINE GET_DENSITY(density, psi, Nx, Ny, Nz)
         IMPLICIT NONE
         INTEGER*4, INTENT(IN) ::Nx, Ny, Nz
@@ -82,7 +98,7 @@ MODULE UTILS
                     x=(i-1)*dx
                     y=(j-1)*dx
                     z=(k-1)*dz
-                    psi(i,j,k)=initial_psi(x,y,z,x0,y0,z0,sigma)
+                    psi(i,j,k)=initial_psi_v2(x,y,z,x0,y0,z0,sigma, 0.75*sigma, 0.5*sigma)
                 enddo
             enddo
         enddo

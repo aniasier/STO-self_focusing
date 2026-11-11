@@ -15,6 +15,7 @@ PROGRAM MAIN
     ! REAL*8, ALLOCATABLE :: electric_field_new(:)
     REAL*8, ALLOCATABLE :: epsilon(:, :, :)
     REAL*8, ALLOCATABLE :: potential(:, :, :)
+    REAL*8, ALLOCATABLE :: potential_new(:, :, :)
     REAL*8, ALLOCATABLE :: potential_eps0(:, :, :)
     REAL*8, ALLOCATABLE :: density(:, :, :)
     REAL*8, ALLOCATABLE :: density_full(:, :, :)
@@ -40,6 +41,7 @@ PROGRAM MAIN
     ALLOCATE(potential_z(nz_1d))
     ALLOCATE(epsilon(nx, ny,nz_3d))
     ALLOCATE(potential(nx, ny,nz_3d))
+    ALLOCATE(potential_new(nx, ny,nz_3d))
     ALLOCATE(potential_eps0(nx, ny,nz_3d))
     ALLOCATE(density(nx, ny,nz_3d))
     ALLOCATE(density_full(nx, ny,nz_3d))
@@ -57,7 +59,7 @@ PROGRAM MAIN
     ! CALL POISSON_ZDIRECTION(electric_field_new, electric_field, charge_trapped, eps_0,  nz, dz)
     ! stage 2: dielectric
     CALL GET_EPSILON(potential_z, eps_0, nx, ny, nz_1d, dz_1d, nz_3d, dz_3d, epsilon)
-    CALL GET_CHARGE_TRAPPED3D(charge_trapped3D, charge_trapped, nx, ny, nz_3d)
+    CALL GET_CHARGE_TRAPPED3D(charge_trapped, nx, ny, nz_1d, dz_1d, nz_3d, dz_3d, charge_trapped3D)
     CALL GET_INIT_PSI(init_psi, Nx, Ny, Nz_3d, x0, y0, z0, sigma, dx, dz_3d)
     CALL GET_DENSITY(density, init_psi, nx, ny, nz_3d)
     CALL WRITE_DENSITY_2D_XY(density, nx, ny, nz_3d, dx,dz_3d, './data/density_init.dat')
@@ -65,27 +67,28 @@ PROGRAM MAIN
     CALL WRITE_DENSITY_CROSS_SECTION(density, Nx, Ny, Nz_3d, dz_3d, './data/density_init_crossection.dat')
     CALL WRITE_DENSITY_CROSS_SECTION_X(density, Nx, Ny, Nz_3d, dx, z0_indx, './data/density_init_crossection_x.dat')
     CALL WRITE_DENSITY_CROSS_SECTION_Y(density, Nx, Ny, Nz_3d, dx, z0_indx, './data/density_init_crossection_y.dat')
-    CALL WRITE_FUNCTION(potential_z, nz_1d, dz_1d, './data/potential_init_crossection.dat')
     ! stage 3: poisson in 3d with changing dielectric function
     energy_old = 1.d99
     eps_local = epsilon(ceiling((nx-1)/2.0d0), ceiling((ny-1)/2.0d0), z0_indx)
     ! charge_trapped3D(:,:,:) = 0.0d0
+    potential(:,:,:) =0.0d0
+    potential_new(:,:,:) =0.0d0
     DO iter = 1, MAX_ITER_SCF
-        potential(:,:,:) =0.0d0
         ! PRINT*, "SCF ITERATION:", iter
-        CALL Poisson_epsilon_no_charge(potential, density, epsilon, alfa, nx, ny, nz_3d, dx, dz_3d, tol, MAX_ITER)
+        CALL Poisson_epsilon_no_charge(potential_new, density, epsilon, alfa, nx, ny, nz_3d, dx, dz_3d, tol, MAX_ITER)
         DO k=1, Nz_3d
             DO j=1, Ny
                 DO i=1, Nx
-                    potential(i,j,k)=potential(i,j,k)-potential_z(k)
+                    potential_new(i,j,k)=potential_new(i,j,k)-potential_z(k)
                 END DO
             END DO
         END DO
         eps_local = epsilon(ceiling((nx-1)/2.0d0), ceiling((ny-1)/2.0d0), z0_indx)  
         ! stage 4: poisson with epsilon NOT changing
         CALL Poisson(potential_eps0, density, eps_local, alfa, Nx, Ny, Nz_3d, dx, dz_3d, tol, MAX_ITER)
-        potential = potential - potential_eps0
-    
+        potential_new = potential_new - potential_eps0
+        potential = beta* potential_new + (1.d0-beta)*potential
+        
         CALL IMAGINARY_TIME(potential, Nx, Ny, Nz_3d, dx, dz_3d, dt, MAX_TIME, m1, m2, init_psi, final_psi, energy, tol)
         CALL GET_DENSITY(density, final_psi, nx, ny, nz_3d)
         ! WRITE(filename, '(A,I0,A)') './data/density3D_', iter, '.dat'
@@ -115,7 +118,7 @@ PROGRAM MAIN
         ! CALL GET_EPSILON(potential_z, eps_0, nx, ny, nz_1d, dz_1d, nz_3d, dz_3d, epsilon)
     END DO
     CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz_3d, dx, dz_3d, './data/potential_final.dat')
-    CALL WRITE_POTENTIAL_2D_XY_SLICE(potential, nx, ny, nz_3d, dx, dz_3d, z0_indx, './data/potential_final_slice.dat')
+    ! CALL WRITE_POTENTIAL_2D_XY_SLICE(potential, nx, ny, nz, dx, dz, z0_indx, './data/potential_final_slice.dat')
     CALL WRITE_POTENTIAL_CROSS_SECTION(potential, Nx, Ny, Nz_3d, dz_3d, './data/potential_final_crossection.dat')
     CALL WRITE_POTENTIAL_CROSS_SECTION_X(potential, Nx, Ny, Nz_3d, dx, z0_indx, './data/potential_final_crossection_x.dat')
     CALL WRITE_POTENTIAL_CROSS_SECTION_Y(potential, Nx, Ny, Nz_3d, dx, z0_indx, './data/potential_final_crossection_y.dat')
@@ -139,6 +142,7 @@ PROGRAM MAIN
     DEALLOCATE(potential_z)
     DEALLOCATE(epsilon)
     DEALLOCATE(potential)
+    DEALLOCATE(potential_new)
     DEALLOCATE(potential_eps0)
     DEALLOCATE(density)
     DEALLOCATE(init_psi)

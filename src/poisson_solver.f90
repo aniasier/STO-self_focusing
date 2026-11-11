@@ -384,7 +384,7 @@ CONTAINS
                         sum_e = e_ip + e_im + e_jp + e_jm + e_kp + e_km
                         
                         ! 2. The source term (Right Hand Side)
-                        source = -(density(i,j,k)) / epsilon0
+                        source = (density(i,j,k)) / epsilon0
                         
                         ! 3. Calculate Gauss-Seidel result
                         ! This is now a weighted average of neighbors

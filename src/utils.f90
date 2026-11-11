@@ -68,20 +68,42 @@ MODULE UTILS
 
     END SUBROUTINE GET_NORM
 
-    SUBROUTINE GET_CHARGE_TRAPPED3D(charge_trapped3D, charge_trapped, nx, ny, nz)
-        IMPLICIT NONE
-        REAL*8, INTENT(OUT) :: charge_trapped3D(nx, ny, nz)
-        REAL*8, INTENT(IN) :: charge_trapped(nz)
-        INTEGER*4, INTENT(IN) :: nx, ny, nz
-        INTEGER*4 :: i, j, k
+    SUBROUTINE GET_CHARGE_TRAPPED3D(charge_trapped_1d, &
+                                    nx, ny, &
+                                    nz_1d, dz_1d, &
+                                    nz_3d, dz_3d, &
+                                    charge_trapped3D)
 
-        DO k=1, Nz
-            DO i=1, nx
-                DO j=1, ny
-                    charge_trapped3D(i,j,k) = charge_trapped(k)
+        IMPLICIT NONE
+
+        INTEGER, INTENT(IN) :: nx, ny
+        INTEGER, INTENT(IN) :: nz_1d, nz_3d
+
+        REAL*8, INTENT(IN) :: dz_1d, dz_3d
+        REAL*8, INTENT(IN) :: charge_trapped_1d(nz_1d)
+
+        REAL*8, INTENT(OUT) :: charge_trapped3D(nx, ny, nz_3d)
+
+        REAL*8 :: charge_trapped_3d(nz_3d)
+        INTEGER :: i, j, k
+
+        !---------------------------------------------------------
+        ! 1. Interpolacja ładunku z siatki 1D na siatkę 3D (w osi Z)
+        !---------------------------------------------------------
+        CALL INTERPOLATE_1D(charge_trapped_1d, nz_1d, dz_1d, &
+                            charge_trapped_3d, nz_3d, dz_3d)
+
+        !---------------------------------------------------------
+        ! 2. Rozszerzenie profilu Z na płaszczyznę XY
+        !---------------------------------------------------------
+        DO k = 1, nz_3d
+            DO i = 1, nx
+                DO j = 1, ny
+                    charge_trapped3D(i, j, k) = charge_trapped_3d(k)
                 END DO
             END DO
         END DO
+
     END SUBROUTINE GET_CHARGE_TRAPPED3D
 
     SUBROUTINE GET_INIT_PSI(psi, Nx, Ny, Nz, x0, y0, z0, sigma, dx, dz)
@@ -98,7 +120,7 @@ MODULE UTILS
                     x=(i-1)*dx
                     y=(j-1)*dx
                     z=(k-1)*dz
-                    psi(i,j,k)=initial_psi_v2(x,y,z,x0,y0,z0,sigma, 0.75*sigma, 0.5*sigma)
+                    psi(i,j,k)=initial_psi(x,y,z,x0,y0,z0,sigma)
                 enddo
             enddo
         enddo

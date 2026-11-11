@@ -25,7 +25,7 @@ MODULE WRITERS
                 DO i = 1, Nx
                     x = (i-1) * dx/fnm2au
                     y = (j-1) * dx/fnm2au
-                    z = (k-1) * dx/fnm2au
+                    z = (k-1) * dz/fnm2au
                     WRITE(unit, '(4E15.7)') x, y, z, density(i,j,k)
                 END DO
                 WRITE(unit, '(A)') ''  ! Blank line for gnuplot

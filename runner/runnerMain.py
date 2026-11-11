@@ -10,7 +10,7 @@ def main():
 
     Bz = [1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0, 11.0, 12.0]
     for b in Bz:
-        runner.run_slurm_param_value([(nml_name1, "sigma", b)], runsDir="STO-self_focusing/oct/sigma_init", machine="default")
+        runner.run_slurm_param_value([(nml_name1, "sigma", b)], runsDir="STO-self_focusing/nov/mixing", machine="default")
     # runner.run_slurm_param_value([(nml_name1, "m1", 1.0)], runsDir="STO-self_focusing/epsilon-tests-local/m08", machine="default")
     # runner.run_slurm_param_value([(nml_name1, "m1", 9.0)], runsDir="STO-self_focusing/epsilon-tests-local/m08", machine="default")
     # runner.run_slurm_param_value([(nml_name1, "m1", 8.0)], runsDir="STO-self_focusing/epsilon-tests-local/m08", machine="default")

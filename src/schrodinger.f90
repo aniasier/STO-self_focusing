@@ -57,6 +57,14 @@ MODULE SCHRODINGER
             !!$omp end parallel do
             psi_new = psi - dt*ham
             norm = 0.d0
+            psi_new(1,:,:)  = 0.d0
+            psi_new(Nx,:,:) = 0.d0
+            psi_new(:,1,:)  = 0.d0
+            psi_new(:,Ny,:) = 0.d0
+            psi_new(:,:,1)  = 0.d0
+            psi_new(:,:,Nz) = 0.d0
+            energy = 0.d0
+            ham(:,:,:) = 0.0d0
 
             do k=1,Nz
                 do j=1,Ny
@@ -67,15 +75,6 @@ MODULE SCHRODINGER
                     end do
                 end do
             end do
-
-            psi_new(1,:,:)  = 0.d0
-            psi_new(Nx,:,:) = 0.d0
-            psi_new(:,1,:)  = 0.d0
-            psi_new(:,Ny,:) = 0.d0
-            psi_new(:,:,1)  = 0.d0
-            psi_new(:,:,Nz) = 0.d0
-            energy = 0.d0
-            ham(:,:,:) = 0.0d0
 
             ! print*, "norm =", norm
             norm = sqrt(norm*dx*dx*dz)

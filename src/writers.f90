@@ -3,10 +3,10 @@ MODULE WRITERS
     IMPLICIT NONE
     CONTAINS
 
-    SUBROUTINE WRITE_DENSITY(density, Nx, Ny, Nz, dx, filename)
+    SUBROUTINE WRITE_DENSITY(density, Nx, Ny, Nz, dx, dz, filename)
         IMPLICIT NONE
         INTEGER*4, INTENT(IN) :: Nx, Ny, Nz
-        REAL*8, INTENT(IN) :: density(Nx, Ny, Nz), dx
+        REAL*8, INTENT(IN) :: density(Nx, Ny, Nz), dx, dz
         CHARACTER(LEN=*), INTENT(IN) :: filename
         INTEGER*4 :: i, j, k, unit
         REAL*8 :: x, y, z

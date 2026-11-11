@@ -11,6 +11,7 @@ PROGRAM MAIN
     REAL*8, ALLOCATABLE :: charge_trapped(:)
     REAL*8, ALLOCATABLE :: charge_trapped3D(:, :, :)
     REAL*8, ALLOCATABLE :: potential_z(:)
+    REAL*8, ALLOCATABLE :: potential_z_3d(:)
     REAL*8, ALLOCATABLE :: electric_field(:)
     ! REAL*8, ALLOCATABLE :: electric_field_new(:)
     REAL*8, ALLOCATABLE :: epsilon(:, :, :)
@@ -39,6 +40,7 @@ PROGRAM MAIN
     ALLOCATE(electric_field(nz_1d))
     ! ALLOCATE(electric_field_new(nz))
     ALLOCATE(potential_z(nz_1d))
+    ALLOCATE(potential_z_3d(nz_3d))
     ALLOCATE(epsilon(nx, ny,nz_3d))
     ALLOCATE(potential(nx, ny,nz_3d))
     ALLOCATE(potential_new(nx, ny,nz_3d))
@@ -56,6 +58,8 @@ PROGRAM MAIN
     ! stage 1: z direction
     CALL POISSON_ZDIRECTION_INIT(n0_trapped, L_trapped, eps_0, nz_1d, dz_1d, charge_trapped, electric_field, potential_z)
     potential_z = potential_z-maxval(potential_z)
+    CALL INTERPOLATE_1D(potential_z, nz_1d, dz_1d, &
+                    potential_z_3d, nz_3d, dz_3d)
     ! CALL POISSON_ZDIRECTION(electric_field_new, electric_field, charge_trapped, eps_0,  nz, dz)
     ! stage 2: dielectric
     CALL GET_EPSILON(potential_z, eps_0, nx, ny, nz_1d, dz_1d, nz_3d, dz_3d, epsilon)
@@ -79,7 +83,7 @@ PROGRAM MAIN
         DO k=1, Nz_3d
             DO j=1, Ny
                 DO i=1, Nx
-                    potential_new(i,j,k)=potential_new(i,j,k)-potential_z(k)
+                    potential_new(i,j,k)=potential_new(i,j,k)-potential_z_3d(k)
                 END DO
             END DO
         END DO
@@ -140,6 +144,7 @@ PROGRAM MAIN
     DEALLOCATE(electric_field)
     ! DEALLOCATE(electric_field_new)
     DEALLOCATE(potential_z)
+    DEALLOCATE(potential_z_3d)
     DEALLOCATE(epsilon)
     DEALLOCATE(potential)
     DEALLOCATE(potential_new)

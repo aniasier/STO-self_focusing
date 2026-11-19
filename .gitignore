@@ -10,6 +10,7 @@
 obj/
 mod/
 data/
+analyzer/
 
 # Python
 __pycache__/

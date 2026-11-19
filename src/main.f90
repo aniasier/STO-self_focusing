@@ -58,6 +58,7 @@ PROGRAM MAIN
     ! stage 1: z direction
     CALL POISSON_ZDIRECTION_INIT(n0_trapped, L_trapped, eps_0, nz_1d, dz_1d, charge_trapped, electric_field, potential_z)
     potential_z = potential_z-maxval(potential_z)
+    CALL WRITE_FUNCTION(potential_z, nz_1d, dz_1d, './data/potential_z_check.dat')
     CALL INTERPOLATE_1D(potential_z, nz_1d, dz_1d, &
                     potential_z_3d, nz_3d, dz_3d)
     ! CALL POISSON_ZDIRECTION(electric_field_new, electric_field, charge_trapped, eps_0,  nz, dz)
@@ -80,18 +81,25 @@ PROGRAM MAIN
     DO iter = 1, MAX_ITER_SCF
         ! PRINT*, "SCF ITERATION:", iter
         CALL Poisson_epsilon_no_charge(potential_new, density, epsilon, alfa, nx, ny, nz_3d, dx, dz_3d, tol, MAX_ITER)
+        CALL WRITE_POTENTIAL_2D_XY(potential_new, nx, ny, nz_3d, dx, dz_3d, './data/potential_new_no_charge.dat')
+        CALL WRITE_POTENTIAL_2D_XY(potential_new, nx, ny, nz_3d, dx, dz_3d, './data/potential_new_po_odjeciu_z.dat')
+        eps_local = epsilon(ceiling((nx-1)/2.0d0), ceiling((ny-1)/2.0d0), z0_indx)  
+        ! stage 4: poisson with epsilon NOT changing
+        potential_eps0(:,:,:) = 0.0d0
+        CALL Poisson(potential_eps0, density, eps_local, alfa, Nx, Ny, Nz_3d, dx, dz_3d, tol, MAX_ITER)
+        
         DO k=1, Nz_3d
             DO j=1, Ny
                 DO i=1, Nx
-                    potential_new(i,j,k)=potential_new(i,j,k)-potential_z_3d(k)
+                    potential_new(i,j,k)=(potential_new(i,j,k)-potential_eps0(i,j,k))!+potential_z_3d(k)
                 END DO
             END DO
         END DO
-        eps_local = epsilon(ceiling((nx-1)/2.0d0), ceiling((ny-1)/2.0d0), z0_indx)  
-        ! stage 4: poisson with epsilon NOT changing
-        CALL Poisson(potential_eps0, density, eps_local, alfa, Nx, Ny, Nz_3d, dx, dz_3d, tol, MAX_ITER)
+        CALL WRITE_POTENTIAL_2D_XY(potential_eps0, nx, ny, nz_3d, dx, dz_3d, './data/potential_eps0.dat')
         potential_new = potential_new - potential_eps0
+        CALL WRITE_POTENTIAL_2D_XY(potential_new, nx, ny, nz_3d, dx, dz_3d, './data/potential_new_po_odjeciu_eps0.dat')
         potential = beta* potential_new + (1.d0-beta)*potential
+        CALL WRITE_POTENTIAL_2D_XY(potential, nx, ny, nz_3d, dx, dz_3d, './data/potential_do_schr.dat')
         
         CALL IMAGINARY_TIME(potential, Nx, Ny, Nz_3d, dx, dz_3d, dt, MAX_TIME, m1, m2, init_psi, final_psi, energy, tol)
         CALL GET_DENSITY(density, final_psi, nx, ny, nz_3d)

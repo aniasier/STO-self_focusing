@@ -316,7 +316,7 @@ MODULE WRITERS
         ! Write 2D projection (integrate over z)
         DO i = 1, N
             x = (i-1) * dx / fnm2au
-            WRITE(unit, '(2ES30.16E3)') x, fun(i) / feV2au
+            WRITE(unit, '(2ES30.16E3)') x, fun(i) 
         END DO
         
         CLOSE(unit)

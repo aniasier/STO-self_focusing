@@ -81,4 +81,51 @@ SUBROUTINE GET_EPSILON(potential_1d, eps0, &
 
 END SUBROUTINE GET_EPSILON
 
+SUBROUTINE UPDATE_EPSILON_3D(potential_el, E_trapped_3d, eps0, &
+                            Nx, Ny, Nz, dx, dz, epsilon, damp)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: Nx, Ny, Nz
+    REAL*8,  INTENT(IN) :: potential_el(Nx, Ny, Nz)
+    REAL*8,  INTENT(IN) :: E_trapped_3d(Nz)  ! pole tła od uwięzionych ładunków
+    REAL*8,  INTENT(IN) :: eps0, dx, dz, damp
+    REAL*8,  INTENT(INOUT) :: epsilon(Nx, Ny, Nz)
+
+    INTEGER :: i, j, k
+    REAL*8  :: Ex, Ey, Ez, E_mag, eps_calc
+
+    DO k = 2, Nz - 1
+        DO j = 2, Ny - 1
+            DO i = 2, Nx - 1
+                ! 1. Gradient potencjału (pole elektryczne elektronu)
+                Ex = (potential_el(i+1,j,k) - potential_el(i-1,j,k)) / (2.0d0 * dx)
+                Ey = (potential_el(i,j+1,k) - potential_el(i,j-1,k)) / (2.0d0 * dx)
+                Ez = (potential_el(i,j,k+1) - potential_el(i,j,k-1)) / (2.0d0 * dz)
+
+                ! 2. Dodajemy pole tła w osi Z
+                Ez = Ez + E_trapped_3d(k)
+
+                ! 3. Moduł całkowitego pola |E| w 3D
+                E_mag = SQRT(Ex**2 + Ey**2 + Ez**2)
+
+                ! 4. Wyliczenie nowej przenikalności
+                eps_calc = permitivity(eps0, E_mag)
+
+                ! 5. Miksowanie (damping), żeby pętla SCF była stabilna i nie oscylowała
+                epsilon(i,j,k) = (1.0d0 - damp) * epsilon(i,j,k) + damp * eps_calc
+            END DO
+        END DO
+    END DO
+
+    ! Proste warunki brzegowe dla epsilon na ściankach pudła
+    epsilon(1,:,:)  = epsilon(2,:,:)
+    epsilon(Nx,:,:) = epsilon(Nx-1,:,:)
+    epsilon(:,1,:)  = epsilon(:,2,:)
+    epsilon(:,Ny,:) = epsilon(:,Ny-1,:)
+    epsilon(:,:,1)  = epsilon(:,:,2)
+    epsilon(:,:,Nz) = epsilon(:,:,Nz-1)
+
+END SUBROUTINE UPDATE_EPSILON_3D
+
+
+
 END MODULE DIELECTRIC

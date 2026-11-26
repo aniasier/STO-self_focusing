@@ -13,6 +13,7 @@ PROGRAM MAIN
     REAL*8, ALLOCATABLE :: potential_z(:)
     REAL*8, ALLOCATABLE :: potential_z_3d(:)
     REAL*8, ALLOCATABLE :: electric_field(:)
+    REAL*8, ALLOCATABLE :: electric_field_temp(:)
     ! REAL*8, ALLOCATABLE :: electric_field_new(:)
     REAL*8, ALLOCATABLE :: epsilon(:, :, :)
     REAL*8, ALLOCATABLE :: potential(:, :, :)
@@ -39,6 +40,7 @@ PROGRAM MAIN
 
     ALLOCATE(charge_trapped(nz_1d))
     ALLOCATE(electric_field(nz_1d))
+    ALLOCATE(electric_field_temp(nz_3d))
     ! ALLOCATE(electric_field_new(nz))
     ALLOCATE(potential_z(nz_1d))
     ALLOCATE(potential_z_3d(nz_3d))
@@ -54,6 +56,7 @@ PROGRAM MAIN
     ALLOCATE(final_psi(nx, ny, nz_3d))
     
     potential_eps0(:,:,:) =0.0d0
+    potential_temp(:,:,:) =0.0d0
     x0 = (nx-1)*dx/2.0d0
     y0 = (ny-1)*dx/2.0d0
     z0 = (z0_indx)*dz_3d
@@ -64,14 +67,21 @@ PROGRAM MAIN
     CALL INTERPOLATE_1D(potential_z, nz_1d, dz_1d, &
                     potential_z_3d, nz_3d, dz_3d)
     ! CALL POISSON_ZDIRECTION(electric_field_new, electric_field, charge_trapped, eps_0,  nz, dz)
-    CALL Poisson(potential_temp, density, eps_local, alfa, Nx, Ny, Nz_3d, dx, dz_3d, tol, MAX_ITER)
-    CALL UPDATE_EPSILON_3D(potential_temp, electric_field, eps_0, Nx, Ny, Nz_3d, dx, dz_3d, epsilon, 1.0d0)
-    ! stage 2: dielectric
-    ! CALL GET_EPSILON(potential_z, eps_0, nx, ny, nz_1d, dz_1d, nz_3d, dz_3d, epsilon)
-    CALL WRITE_FUNCTION(epsilon(1,1,:), Nz_3d, dz_3d, './data/epsilon_stary.dat')
-    CALL GET_CHARGE_TRAPPED3D(charge_trapped, nx, ny, nz_1d, dz_1d, nz_3d, dz_3d, charge_trapped3D)
     CALL GET_INIT_PSI(init_psi, Nx, Ny, Nz_3d, x0, y0, z0, sigma, dx, dz_3d)
     CALL GET_DENSITY(density, init_psi, nx, ny, nz_3d)
+    CALL WRITE_DENSITY_2D_XY(density, nx, ny, nz_3d, dx,dz_3d, './data/density_elektron.dat')
+    CALL Poisson(potential_temp, -density, 100.0d0, alfa, Nx, Ny, Nz_3d, dx, dz_3d, tol, MAX_ITER)
+    CALL INTERPOLATE_1D(electric_field, Nz_1d, dz_1d, electric_field_temp, Nz_3D, dz_3D)
+    CALL WRITE_POTENTIAL_2D_XY(potential_temp, nx, ny, nz_3d, dx, dz_3d, './data/potenital_elektron.dat')
+    CALL UPDATE_EPSILON_3D(potential_temp, electric_field_temp, eps_0, Nx, Ny, Nz_3d, dx, dz_3d, epsilon, 1.0d0)
+    ! stage 2: dielectric
+    ! CALL GET_EPSILON(potential_z, eps_0, nx, ny, nz_1d, dz_1d, nz_3d, dz_3d, epsilon)
+    CALL WRITE_FUNCTION(epsilon(1,1,:), Nz_3d, dz_3d, './data/epsilon_1.dat')
+    CALL WRITE_FUNCTION(epsilon(1,15,:), Nz_3d, dz_3d, './data/epsilon_2.dat')
+    CALL WRITE_FUNCTION(epsilon(10,1,:), Nz_3d, dz_3d, './data/epsilon_3.dat')
+    CALL WRITE_FUNCTION(epsilon(16,55,:), Nz_3d, dz_3d, './data/epsilon_4.dat')
+    CALL GET_CHARGE_TRAPPED3D(charge_trapped, nx, ny, nz_1d, dz_1d, nz_3d, dz_3d, charge_trapped3D)
+    
     potential_new(:,:,:) =0.0d0
     ! CALL Poisson_epsilon_no_charge(potential_new, density, epsilon, alfa, nx, ny, nz_3d, dx, dz_3d, tol, MAX_ITER)
 
@@ -164,6 +174,7 @@ PROGRAM MAIN
 
     DEALLOCATE(charge_trapped)
     DEALLOCATE(electric_field)
+    DEALLOCATE(electric_field_temp)
     ! DEALLOCATE(electric_field_new)
     DEALLOCATE(potential_z)
     DEALLOCATE(potential_z_3d)

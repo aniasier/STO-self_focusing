@@ -97,9 +97,9 @@ SUBROUTINE UPDATE_EPSILON_3D(potential_el, E_trapped_3d, eps0, &
         DO j = 2, Ny - 1
             DO i = 2, Nx - 1
                 ! 1. Gradient potencjału (pole elektryczne elektronu)
-                Ex = (potential_el(i+1,j,k) - potential_el(i-1,j,k)) / (2.0d0 * dx)
-                Ey = (potential_el(i,j+1,k) - potential_el(i,j-1,k)) / (2.0d0 * dx)
-                Ez = (potential_el(i,j,k+1) - potential_el(i,j,k-1)) / (2.0d0 * dz)
+                Ex = -(potential_el(i+1,j,k) - potential_el(i-1,j,k)) / (2.0d0 * dx)
+                Ey = -(potential_el(i,j+1,k) - potential_el(i,j-1,k)) / (2.0d0 * dx)
+                Ez = -(potential_el(i,j,k+1) - potential_el(i,j,k-1)) / (2.0d0 * dz)
 
                 ! 2. Dodajemy pole tła w osi Z
                 Ez = Ez + E_trapped_3d(k)

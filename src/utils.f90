@@ -203,6 +203,32 @@ MODULE UTILS
 
     END SUBROUTINE INTERPOLATE_1D
 
+
+    SUBROUTINE GET_ELECTRIC_FIELD(potential, dx1d, dx3d,nx1d, nx3d, electric_field, electric_field_out)
+        IMPLICIT NONE
+        INTEGER*4, INTENT(IN) :: nx1d, nx3d
+        REAL*8, INTENT(IN) :: dx1d, dx3d
+        REAL*8, INTENT(IN) :: potential(nx3d)        
+        REAL*8, INTENT(OUT) :: electric_field_out(nx1d)
+        REAL*8 :: electric_field(nx3d)
+        INTEGER*4 :: K
+
+        electric_field(1) = -(potential(2)-potential(1))/dx3d
+
+        DO k=2,nx3d-1
+
+            electric_field(k)=-(potential(k+1)-potential(k-1)) &
+                            /(2.d0*dx3d)
+
+        END DO
+
+        electric_field(nx3d)=-(potential(nx3d)- &
+                                potential(nx3d-1))/dx3d
+
+        CALL INTERPOLATE_1D(electric_field, nx3d, dx3d, electric_field_out,   nx1d,   dx1d)
+        
+    END SUBROUTINE GET_ELECTRIC_FIELD
+
     SUBROUTINE GET_ELECTRON_POTENTIAL_Z(density, nx, ny, nz3d, &
                                     dx, dz3D, z_fine, nz_fine, &
                                     x_center, y_center, potential_e)
